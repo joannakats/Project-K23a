@@ -23,6 +23,7 @@ typedef struct cliqueNode {
 
 node *spec_init(char *, char *, char **, char **);
 cliqueNode *clique_init(node *);
+node *insert(node *, char *, char *, char **, char **);
 delete_clique(cliqueNode *);
 delete_specNode(node *);
 delete_specList(node *);
