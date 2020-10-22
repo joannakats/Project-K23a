@@ -2,6 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include "hashtable.h"
 
 int print_usage(const char *program) {
 	fprintf(stderr,
@@ -14,12 +19,11 @@ int print_usage(const char *program) {
 }
 
 int get_opts(int argc, char *argv[], int *entries, char **dataset_x, char **dataset_w) {
-	int ret, opt;
+	int opt;
+	struct stat statbuf;
 
-	/* Zero-initialized to check that they've been given values later */
+	/* Zero-initialized to check if <= 0 later */
 	*entries = 0;
-	*dataset_x = NULL;
-	*dataset_w = NULL;
 
 	if (argc < 7)
 		return print_usage(argv[0]);
@@ -40,7 +44,33 @@ int get_opts(int argc, char *argv[], int *entries, char **dataset_x, char **data
 		}
 	}
 
-	/* TODO: Test That X is a folder and W is a file */
+	/* Check values */
+	if (*entries <= 0) {
+		fputs("entries must be > 0!\n", stderr);
+		return -1;
+	}
+
+	if (access(*dataset_x, F_OK) == -1) {
+		perror(*dataset_x);
+		return -2;
+	}
+
+	stat(*dataset_x, &statbuf);
+	if (!S_ISDIR(statbuf.st_mode)) {
+		fputs("Dataset X must be a directory!\n", stderr);
+		return -2;
+	}
+
+	if (access(*dataset_w, F_OK) == -1) {
+		perror(*dataset_w);
+		return -2;
+	}
+
+	stat(*dataset_w, &statbuf);
+	if (!S_ISREG(statbuf.st_mode)) {
+		fputs("Dataset W must be a (csv) file!\n", stderr);
+		return -2;
+	}
 
 	return 0;
 }
