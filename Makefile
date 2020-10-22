@@ -9,7 +9,7 @@ all: $(TARGET)
 %.o: %.c $(HDR)
 	$(CC) $(CFLAGS) -g -c $< -o $@
 
-# Indicidual targets for testing
+# Individual targets for testing
 main: src/main.o
 	$(CC) $(CFLAGS) $^ -o $@
 
