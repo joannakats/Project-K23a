@@ -1,3 +1,4 @@
+////////// I HAVEN'T TESTED IT FULLY YET
 #include "spec.h"
 #include <stdio.h>
 #include <string.h>
