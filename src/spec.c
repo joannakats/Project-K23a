@@ -18,7 +18,7 @@ node *spec_init(char *id, char *numOfFields, char **properties, char **values) {
   strcpy(spec->id, id);
 
   spec->next = NULL;
-  spec->clique = NULL;
+  spec->clique = clique_init(spec);
 
   spec->fields = malloc(sizeof(fields));
   spec->fields->properties = properties;
@@ -36,6 +36,32 @@ cliqueNode *clique_init(node *spec) {
   cn->next = NULL;
   cn->spec = spec;
   return cn;
+}
+
+
+/* inserts a spec into the overflow chain */
+node *insert(node *head, char *id, char *numOfFields, char **properties, char **values) {
+  node *new_node = spec_init(id, numOfFields, properties, values);  //create the new node of spec
+
+  /* if the list is empty */
+  if (head == NULL) {
+    return new_node;
+  }
+
+  /* if there is only one element */
+  if (head->next == NULL) {
+    head->next = new_node;
+    return new_node;
+  }
+
+  /* traverse the list  */
+  node *cur = head->next;
+  while(cur->next != NULL) {
+    cur = cur->next;
+  }
+  /*add at the end of the list*/
+  cur->next = new_node;
+  return new_node;
 }
 
 
