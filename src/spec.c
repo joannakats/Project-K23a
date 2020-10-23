@@ -1,4 +1,3 @@
-////////// I HAVEN'T TESTED IT FULLY YET
 #include "spec.h"
 #include <stdio.h>
 #include <string.h>
@@ -8,9 +7,28 @@
 
 //---->function to make values array
 
+void print_list(node *head) {
+	node *current = head;
+	while(current != NULL) {
+		print_fields(current->fields);
+		current = current->next;
+	}
+}
+
+void print_fields(fields *f) {
+	int dim = f->cnt;
+	for (int i = 0; i<dim; i++) {
+		printf("%s: %s\n", f->properties[i], f->values[i]);
+
+	}
+	printf("\n\n");
+}
+
+
 /* creates the spec node and initializes its attrubutes */
 /* requirement: the arrays of strings, properties and values, have been allocated
    and initialized elsewhere */
+/* returns the spec node that has just been inserted */
 node *spec_init(char *id, int numOfFields, char **properties, char **values) {
   /* allocate memory of spec */
   node *spec = malloc(sizeof(node));

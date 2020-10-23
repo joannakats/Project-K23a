@@ -20,7 +20,8 @@ typedef struct cliqueNode {
   struct node *spec;
 } cliqueNode;
 
-
+void print_list(node *);
+void print_fields(fields *);
 node *spec_init(char *, int, char **, char **);
 cliqueNode *clique_init(node *);
 node *insert(node *, char *, int, char **, char **);
