@@ -11,7 +11,7 @@
 /* creates the spec node and initializes its attrubutes */
 /* requirement: the arrays of strings, properties and values, have been allocated
    and initialized elsewhere */
-node *spec_init(char *id, char *numOfFields, char **properties, char **values) {
+node *spec_init(char *id, int numOfFields, char **properties, char **values) {
   /* allocate memory of spec */
   node *spec = malloc(sizeof(node));
 
@@ -41,7 +41,7 @@ cliqueNode *clique_init(node *spec) {
 
 
 /* inserts a spec into the overflow chain */
-node *insert(node *head, char *id, char *numOfFields, char **properties, char **values) {
+node *insert(node *head, char *id, int numOfFields, char **properties, char **values) {
   node *new_node = spec_init(id, numOfFields, properties, values);  //create the new node of spec
 
   /* if the list is empty */
@@ -67,9 +67,9 @@ node *insert(node *head, char *id, char *numOfFields, char **properties, char **
 
 
 /* deletes the whole clique that a spec node points to */
-delete_clique(cliqueNode *node) {
+void delete_clique(cliqueNode *node) {
   cliqueNode *temp;
-  cur = node;
+  cliqueNode *cur = node;
   while (cur != NULL) {
     temp = cur;
     cur = cur->next;
@@ -79,7 +79,7 @@ delete_clique(cliqueNode *node) {
 
 
 /* frees memory allocated for a spec node */
-delete_specNode(node *spec) {
+void delete_specNode(node *spec) {
   fields *ptr = spec->fields;
   int numOfFields = ptr->cnt;
 
@@ -100,10 +100,10 @@ delete_specNode(node *spec) {
 }
 
 /* deletes the whole overflow chain */
-delete_specList(node *head) {
+void delete_specList(node *head) {
   node *cur = head;
   node *temp;
-  while(cur != NUll) {
+  while(cur != NULL) {
     temp = cur;
     cur = cur->next;
     delete_specNode(temp);

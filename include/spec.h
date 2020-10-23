@@ -5,7 +5,7 @@ typedef struct fields {
   //properties and values are stored accordingly
   char **properties;
   char **values;
-	int cnt; //counter of fields stored
+  int cnt; //counter of fields stored
 } fields;
 
 typedef struct node {
@@ -21,11 +21,11 @@ typedef struct cliqueNode {
 } cliqueNode;
 
 
-node *spec_init(char *, char *, char **, char **);
+node *spec_init(char *, int, char **, char **);
 cliqueNode *clique_init(node *);
-node *insert(node *, char *, char *, char **, char **);
-delete_clique(cliqueNode *);
-delete_specNode(node *);
-delete_specList(node *);
+node *insert(node *, char *, int, char **, char **);
+void delete_clique(cliqueNode *);
+void delete_specNode(node *);
+void delete_specList(node *);
 
 #endif
