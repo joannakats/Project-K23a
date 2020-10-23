@@ -1,3 +1,4 @@
+#include "spec.h"
 typedef struct hashtable {
     int index;
     node* head;
