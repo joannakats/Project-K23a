@@ -26,9 +26,13 @@ unsigned  long  hash(const char* key,int tableSize){
 	return result;
 }
 
-void insert_entry(hashtable *hsTable,int key,char* data){//where data is the spec and key>=0 && key<tableSize
-	//to use node*insert(node *head, char *id, char *numOfFields, char **properties, char **values) 
-	//we need to read first info from specs and search( list) if spec already exists.
+void insert_entry(hashtable* hsTable,int index,char* spec,int numOfFields,char **properties,char **values){// 0<=index<tableSize
+	node* temp;
+	if(hsTable[index].head==NULL){
+		hsTable[index].head=spec_insert(hsTable[index].head,spec,numOfFields,properties,values);
+	}else{
+		temp=spec_insert(hsTable[index].head,spec,numOfFields,properties,values);
+	}
 
 }
 
