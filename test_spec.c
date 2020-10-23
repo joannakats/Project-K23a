@@ -18,7 +18,7 @@ int main() {
 	v1 = malloc(cnt1*sizeof(char*));
 	v2 = malloc(cnt2*sizeof(char*));
 	v3 = malloc(cnt3*sizeof(char*));
-	
+
 
 	for(i=0; i<cnt1; i++) {
 		prop1[i] = malloc(sizeof(char)*(strlen(str)+1));
@@ -26,25 +26,25 @@ int main() {
 		strcpy(prop1[i], str);
 		strcpy(v1[i], s);
 	}
-	
+
 	for(i=0; i<cnt2; i++) {
 		prop2[i] = malloc(sizeof(char)*(strlen(str)+1));
 		v2[i] = malloc(sizeof(char)*(strlen(s)+1));
 		strcpy(prop2[i], str);
 		strcpy(v2[i], s);
 	}
-	
+
 	for(i=0; i<cnt3; i++) {
 		prop3[i] = malloc(sizeof(char)*(strlen(str)+1));
 		v3[i] = malloc(sizeof(char)*(strlen(s)+1));
 		strcpy(prop3[i], str);
 		strcpy(v3[i], s);
 	}
-	
-	head = insert(head, id,  cnt1, prop1, v1);
-	node  *temp = insert(head, id,  cnt2, prop2, v2);
-	temp = insert(head, id,  cnt3, prop3, v3);
-	
+
+	head = spec_insert(head, id,  cnt1, prop1, v1);
+	node  *temp = spec_insert(head, id,  cnt2, prop2, v2);
+	temp = spec_insert(head, id,  cnt3, prop3, v3);
+
 	print_list(head);
 
 	delete_specList(head);

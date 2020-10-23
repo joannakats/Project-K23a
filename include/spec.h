@@ -24,7 +24,7 @@ void print_list(node *);
 void print_fields(fields *);
 node *spec_init(char *, int, char **, char **);
 cliqueNode *clique_init(node *);
-node *insert(node *, char *, int, char **, char **);
+node *spec_insert(node *, char *, int, char **, char **);
 void delete_clique(cliqueNode *);
 void delete_specNode(node *);
 void delete_specList(node *);

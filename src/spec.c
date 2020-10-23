@@ -59,7 +59,7 @@ cliqueNode *clique_init(node *spec) {
 
 
 /* inserts a spec into the overflow chain */
-node *insert(node *head, char *id, int numOfFields, char **properties, char **values) {
+node *spec_insert(node *head, char *id, int numOfFields, char **properties, char **values) {
   node *new_node = spec_init(id, numOfFields, properties, values);  //create the new node of spec
 
   /* if the list is empty */
