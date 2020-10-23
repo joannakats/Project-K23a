@@ -1,4 +1,6 @@
+#include <dirent.h>
 #include <getopt.h>
+#include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,7 +8,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "hashtable.h"
+//#include "hashtable.h"
+typedef struct hashtable hashtable;
 
 int print_usage(const char *program) {
 	fprintf(stderr,
@@ -75,6 +78,48 @@ int get_opts(int argc, char *argv[], int *entries, char **dataset_x, char **data
 	return 0;
 }
 
+int insert_specs(hashtable *hash_table, char *path) {
+	DIR *dir;
+	struct dirent *dirent;
+
+	char buf[512];
+
+	// TODO: If no information hiding, node here
+	char *spec_id;
+	int spec_field_count;
+	char **spec_properties, **spec_values;
+
+	dir = opendir(path);
+
+	while ((dirent = readdir(dir))) {
+		/* Skip dot-files/folders, like ".." */
+		if (dirent->d_name[0] == '.')
+			continue;
+
+		/* Recurse into site (e.g. www.ebay.com) subdirectories
+		 * Note:Not all filesystems support d_type ! */
+		if (dirent->d_type == DT_DIR) {
+			sprintf(buf, "%s/%s", path, dirent->d_name);
+			insert_specs(hash_table, buf);
+		} else {
+			/* Remove (.json) extention from filename */
+			*strrchr(dirent->d_name, '.') = '\0';
+
+			sprintf(buf, "%s//%s", basename(path), dirent->d_name);
+
+			// Print id (e.g. buy.net//10)
+			spec_id = buf;
+			puts(spec_id);
+
+			// TODO: Get fields, Insert in hashtable
+		}
+	}
+
+	closedir(dir);
+
+	return 0;
+}
+
 int main(int argc, char *argv[]) {
 	int ret = 0;
 
@@ -82,13 +127,14 @@ int main(int argc, char *argv[]) {
 	int entries = 0;
 	char *dataset_x = NULL, *dataset_w = NULL;
 
-	if ((ret = get_opts(argc, argv, &entries, &dataset_w, &dataset_x)))
+	if ((ret = get_opts(argc, argv, &entries, &dataset_x, &dataset_w)))
 		return ret;
 
-	// Test
+	// Print arguments
 	printf("e: %d, w: %s, x: %s\n", entries, dataset_w, dataset_x);
 
-	// ht init goes here
+	/* TODO: ht init goes here */
+	insert_specs(NULL, dataset_x);
 
 	free(dataset_w);
 	free(dataset_x);
