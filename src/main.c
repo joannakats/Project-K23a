@@ -8,8 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-//#include "hashtable.h"
-typedef struct hashtable hashtable;
+#include "hashtable.h"
 
 int print_usage(const char *program) {
 	fprintf(stderr,
@@ -78,6 +77,45 @@ int get_opts(int argc, char *argv[], int *entries, char **dataset_x, char **data
 	return 0;
 }
 
+int get_json(char *path, int *spec_field_count, char ***spec_properties, char ***spec_values) {
+	FILE *json;
+	char buffer[2048], *property, *value, *saveptr;
+
+	/* Initialize as NULL, old arrays are part of spec nodes now */
+	*spec_properties = NULL, *spec_values = NULL;
+	*spec_field_count = 0;
+
+	if (!(json = fopen(path, "r"))) {
+		perror(path);
+		return -1;
+	}
+
+	while (fgets(buffer, sizeof(buffer), json)) {
+		if (buffer[0] == '{' || buffer[0] == '}')
+			continue;
+
+		/* New field entry, resize arrays */
+		(*spec_field_count)++;
+		*spec_properties = realloc(*spec_properties, *spec_field_count * sizeof(**spec_properties));
+		*spec_values = realloc(*spec_values, *spec_field_count * sizeof(**spec_values));
+
+		/* Save field line [property, value] in parallel arrays */
+		strtok_r(buffer, "\"", &saveptr);            /* 1. Whitespace */
+		property = strtok_r(NULL, "\"", &saveptr);     /* 2. Property */
+		strtok_r(NULL, "\"", &saveptr);               /* 3. Semicolon */
+		value = strtok_r(NULL, "\"", &saveptr);           /* 4. Value */
+
+		(*spec_properties)[*spec_field_count - 1] = strdup(property);
+		(*spec_values)[*spec_field_count - 1] = strdup(value);
+	}
+
+	// Test print
+	/* for (int i = 0; i < *spec_field_count; ++i)
+		printf("%s | %s\n", (*spec_properties)[i], (*spec_values)[i]); */
+
+	return 0;
+}
+
 int insert_specs(hashtable *hash_table, char *path) {
 	DIR *dir;
 	struct dirent *dirent;
@@ -98,20 +136,26 @@ int insert_specs(hashtable *hash_table, char *path) {
 
 		/* Recurse into site (e.g. www.ebay.com) subdirectories
 		 * Note:Not all filesystems support d_type ! */
+
+		/* buf is the full path to the current dir entry (folder or .json) */
+		sprintf(buf, "%s/%s", path, dirent->d_name);
+
 		if (dirent->d_type == DT_DIR) {
-			sprintf(buf, "%s/%s", path, dirent->d_name);
 			insert_specs(hash_table, buf);
 		} else {
-			/* Remove (.json) extention from filename */
-			*strrchr(dirent->d_name, '.') = '\0';
+			/* Read spec properties from json */
+			get_json(buf, &spec_field_count, &spec_properties, &spec_values);
 
+			/* Get spec id (e.g. buy.net//10) */
 			sprintf(buf, "%s//%s", basename(path), dirent->d_name);
+			*strrchr(buf, '.') = '\0'; /* Remove (.json) extension from id */
+			spec_id = strdup(buf);
 
-			// Print id (e.g. buy.net//10)
-			spec_id = buf;
+			// Print id
 			puts(spec_id);
 
-			// TODO: Get fields, Insert in hashtable
+			/* Ready for hashtable insertion */
+			//insert_entry(hash_table, spec_id, spec_field_count, spec_properties, spec_values);
 		}
 	}
 
@@ -127,14 +171,21 @@ int main(int argc, char *argv[]) {
 	int entries = 0;
 	char *dataset_x = NULL, *dataset_w = NULL;
 
+	hashtable hash_table;
+
 	if ((ret = get_opts(argc, argv, &entries, &dataset_x, &dataset_w)))
 		return ret;
 
 	// Print arguments
 	printf("e: %d, w: %s, x: %s\n", entries, dataset_w, dataset_x);
 
-	/* TODO: ht init goes here */
-	insert_specs(NULL, dataset_x);
+	hash_table = hashtable_init(entries);
+
+	// The (spec) fun begins:
+	insert_specs(&hash_table, dataset_x);
+	/* TODO: Update with join data from Dataset W */
+
+	delete_hashtable(&hash_table);
 
 	free(dataset_w);
 	free(dataset_x);
