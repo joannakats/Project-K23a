@@ -109,6 +109,8 @@ int get_json(char *path, int *spec_field_count, char ***spec_properties, char **
 		(*spec_values)[*spec_field_count - 1] = strdup(value);
 	}
 
+	fclose(json);
+
 	// Test print
 	/* for (int i = 0; i < *spec_field_count; ++i)
 		printf("%s | %s\n", (*spec_properties)[i], (*spec_values)[i]); */
@@ -126,6 +128,8 @@ int insert_specs(hashtable *hash_table, char *path) {
 	char *spec_id;
 	int spec_field_count;
 	char **spec_properties, **spec_values;
+
+	int ihash;
 
 	dir = opendir(path);
 
@@ -149,13 +153,16 @@ int insert_specs(hashtable *hash_table, char *path) {
 			/* Get spec id (e.g. buy.net//10) */
 			sprintf(buf, "%s//%s", basename(path), dirent->d_name);
 			*strrchr(buf, '.') = '\0'; /* Remove (.json) extension from id */
-			spec_id = strdup(buf);
+			spec_id = buf;
 
 			// Print id
 			puts(spec_id);
 
+			ihash = hash(spec_id, hash_table->tableSize);
+			printf("Hash is %d\n", ihash);
+
 			/* Ready for hashtable insertion */
-			//insert_entry(hash_table, spec_id, spec_field_count, spec_properties, spec_values);
+			insert_entry(hash_table, ihash, spec_id, spec_field_count, spec_properties, spec_values);
 		}
 	}
 
