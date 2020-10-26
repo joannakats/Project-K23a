@@ -27,16 +27,12 @@ unsigned  long  hash(const char* key,int tableSize){
 	return result;
 }
 
-void insert_entry(hashtable* hsTable,int index,char* spec,int numOfFields,char **properties,char **values){// 0<=index<tableSize
-	node* temp;
-	if(hsTable->list[index]==NULL){
-		hsTable->list[index]=spec_insert(hsTable->list[index],spec,numOfFields,properties,values);
-	}else{
-		temp=spec_insert(hsTable->list[index],spec,numOfFields,properties,values);
-	}
-
+void insert_entry(hashtable* hsTable,char* spec,int numOfFields,char **properties,char **values) {
+	int index = hash(spec, hsTable->tableSize);
+	node *temp = spec_insert(hsTable->list[index],spec,numOfFields,properties,values);
+	if(hsTable->list[index]==NULL)
+		hsTable->list[index] = temp;
 }
-
 
 
 int delete_hashtable(hashtable *hsTable){
@@ -44,5 +40,6 @@ int delete_hashtable(hashtable *hsTable){
 	for(int i=0;i<size;i++){
 		delete_specList(hsTable->list[i]);
 	}
+	free(hsTable->list);
 	return 0;
 }
