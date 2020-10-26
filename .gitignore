@@ -1,4 +1,4 @@
-#files being edited
+# Files being edited
 *~
 
 # make and build files
@@ -13,3 +13,6 @@
 *.exe
 specs
 main
+
+# Valgrind
+.vgcore.*
