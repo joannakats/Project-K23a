@@ -54,6 +54,8 @@ int get_opts(int argc, char *argv[], int *entries, char **dataset_x, char **data
 
 	if (access(*dataset_x, F_OK) == -1) {
 		perror(*dataset_x);
+		free(*dataset_x);
+		free(*dataset_w);
 		return -2;
 	}
 
@@ -65,6 +67,8 @@ int get_opts(int argc, char *argv[], int *entries, char **dataset_x, char **data
 
 	if (access(*dataset_w, F_OK) == -1) {
 		perror(*dataset_w);
+		free(*dataset_x);
+		free(*dataset_w);
 		return -2;
 	}
 
@@ -166,6 +170,38 @@ int insert_specs(hashtable *hash_table, char *path) {
 	return 0;
 }
 
+int join_specs(hashtable *hash_table, char *dataset_w) {
+	FILE *csv;
+
+	char buffer[512];
+	char *left_spec, *right_spec, *label, *saveptr;
+
+	if (!(csv = fopen(dataset_w, "r"))) {
+		perror(dataset_w);
+		return -1;
+	}
+
+	fgets(buffer, sizeof(buffer), csv); /* Skip first line (column titles) */
+
+	while (fgets(buffer, sizeof(buffer), csv)) {
+		left_spec = strtok_r(buffer, ",", &saveptr);
+		right_spec = strtok_r(NULL, ",", &saveptr);
+		label = strtok_r(NULL, ",", &saveptr);
+
+		/* We only care about cliques */
+		if (label[0] == '1') {
+			// TODO: hash_table_join (left, right)
+
+			// Print
+			printf("%s <=> %s\n", left_spec, right_spec);
+		}
+	}
+
+	fclose(csv);
+
+	return 0;
+}
+
 int main(int argc, char *argv[]) {
 	int ret = 0;
 
@@ -185,7 +221,7 @@ int main(int argc, char *argv[]) {
 
 	// The (spec) fun begins:
 	insert_specs(&hash_table, dataset_x);
-	/* TODO: Update with join data from Dataset W */
+	join_specs(&hash_table, dataset_w);
 
 	delete_hashtable(&hash_table);
 
