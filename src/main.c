@@ -129,8 +129,6 @@ int insert_specs(hashtable *hash_table, char *path) {
 	int spec_field_count;
 	char **spec_properties, **spec_values;
 
-	int ihash;
-
 	dir = opendir(path);
 
 	while ((dirent = readdir(dir))) {
@@ -158,11 +156,8 @@ int insert_specs(hashtable *hash_table, char *path) {
 			// Print id
 			puts(spec_id);
 
-			ihash = hash(spec_id, hash_table->tableSize);
-			printf("Hash is %d\n", ihash);
-
 			/* Ready for hashtable insertion */
-			insert_entry(hash_table, ihash, spec_id, spec_field_count, spec_properties, spec_values);
+			insert_entry(hash_table, spec_id, spec_field_count, spec_properties, spec_values);
 		}
 	}
 
