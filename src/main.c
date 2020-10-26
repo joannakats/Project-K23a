@@ -10,6 +10,8 @@
 
 #include "hashtable.h"
 
+#define BUFFER_SIZE 8192
+
 int print_usage(const char *program) {
 	fprintf(stderr,
 		"Usage: %s "
@@ -83,18 +85,23 @@ int get_opts(int argc, char *argv[], int *entries, char **dataset_x, char **data
 
 int get_json(char *path, int *spec_field_count, char ***spec_properties, char ***spec_values) {
 	FILE *json;
-	char buffer[2048], *property, *value, *saveptr;
+	char *buffer, *property, *value, *saveptr;
 
 	/* Initialize as NULL, old arrays are part of spec nodes now */
 	*spec_properties = NULL, *spec_values = NULL;
 	*spec_field_count = 0;
 
+	if (!(buffer = malloc(BUFFER_SIZE))) {
+		fputs("Couldn't allocate space for buffer", stderr);
+		return -1;
+	};
+
 	if (!(json = fopen(path, "r"))) {
 		perror(path);
-		return -1;
+		return -2;
 	}
 
-	while (fgets(buffer, sizeof(buffer), json)) {
+	while (fgets(buffer, BUFFER_SIZE, json)) {
 		if (buffer[0] == '{' || buffer[0] == '}')
 			continue;
 
@@ -109,15 +116,15 @@ int get_json(char *path, int *spec_field_count, char ***spec_properties, char **
 		strtok_r(NULL, "\"", &saveptr);               /* 3. Semicolon */
 		value = strtok_r(NULL, "\"", &saveptr);           /* 4. Value */
 
+		// Test print
+		printf("[%d] %s = %s\n", *spec_field_count, property, value);
+
 		(*spec_properties)[*spec_field_count - 1] = strdup(property);
 		(*spec_values)[*spec_field_count - 1] = strdup(value);
 	}
 
 	fclose(json);
-
-	// Test print
-	/* for (int i = 0; i < *spec_field_count; ++i)
-		printf("%s | %s\n", (*spec_properties)[i], (*spec_values)[i]); */
+	free(buffer);
 
 	return 0;
 }
