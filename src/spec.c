@@ -23,7 +23,7 @@ void print_fields(fields *f) {
 	printf("\n\n");
 }
 
-
+   
 /* creates the spec node and initializes its attrubutes */
 /* requirement: the arrays of strings, properties and values, have been allocated
    and initialized elsewhere */
