@@ -17,9 +17,8 @@ void print_list(node *head) {
 
 void print_fields(fields *f) {
 	int dim = f->cnt;
-	for (int i = 0; i<dim; i++) {
+	for (int i = 0; i < dim; i++) {
 		printf("%s: %s\n", f->properties[i], f->values[i]);
-
 	}
 	printf("\n\n");
 }
@@ -38,6 +37,7 @@ node *spec_init(char *id, int numOfFields, char **properties, char **values) {
 
   spec->next = NULL;
   spec->clique = clique_init(spec);
+	hasListOfClique = true; //initially every new spec node points to a cliqueNode
 
   spec->fields = malloc(sizeof(fields));
   spec->fields->properties = properties;
@@ -111,11 +111,14 @@ void delete_specNode(node *spec) {
 
   free(spec->fields);
 
-  delete_clique(spec->clique); //AN DEN EXEI DIKIA TOY KLIKA??
+	if (spec->hasListOfClique) { //make sure we don't free something we have already freed
+		delete_clique(spec->clique);
+	}
 
   free(spec->id);
   free(spec);
 }
+
 
 /* deletes the whole overflow chain */
 void delete_specList(node *head) {
@@ -126,4 +129,18 @@ void delete_specList(node *head) {
     cur = cur->next;
     delete_specNode(temp);
   }
+}
+
+
+/* returns the spec with the given id if it exists in the list,
+   otherwise it returns NULL */
+node *search_spec(node *head, char *id) {
+	node *current = head;
+	while (current != NULL) {
+		if (strcmp(current->id, id) == 0) {
+			return current;
+		}
+		current = current->next;
+	}
+	return NULL;
 }

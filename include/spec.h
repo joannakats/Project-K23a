@@ -12,6 +12,7 @@ typedef struct node {
   char *id;
   struct node *next;
   struct cliqueNode *clique;
+  bool hasListOfClique; // if true then this node "contains" the list of the clique originally 
   fields *fields;
 } node;
 
@@ -28,5 +29,5 @@ node *spec_insert(node *, char *, int, char **, char **);
 void delete_clique(cliqueNode *);
 void delete_specNode(node *);
 void delete_specList(node *);
-
+node *search_spec(node *, char *);
 #endif
