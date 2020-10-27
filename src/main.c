@@ -1,4 +1,3 @@
-#include <dirent.h>
 #include <getopt.h>
 #include <libgen.h>
 #include <stdio.h>
@@ -8,34 +7,38 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "hashtable.h"
+#include "operations.h"
 
-#define BUFFER_SIZE 8192
+int print_usage(const char *path) {
+	char *program = strdup(path);
 
-int print_usage(const char *program) {
-	fprintf(stderr,
-		"Usage: %s "
-		"-e hash_table_entries "
-		"-w path_to_dataset_w_(csv) "
-		"-x path_to_dataset_x_(directory)\n",
-		program);
+	if (program) {
+		fprintf(stderr,
+			"Usage: %s -e buckets -o output -w dataset_w -x dataset_x\n",
+			basename(program));
+	}
+
+	free(program);
 	return -1;
 }
 
-int get_opts(int argc, char *argv[], int *entries, char **dataset_x, char **dataset_w) {
+int get_opts(int argc, char *argv[], int *entries, char **output, char **dataset_x, char **dataset_w) {
 	int opt;
 	struct stat statbuf;
 
-	/* Zero-initialized to check if <= 0 later */
+	/* Zero-initialized to check if given values later */
 	*entries = 0;
+	*output = NULL;
+	*dataset_x = NULL;
+	*dataset_w = NULL;
 
-	if (argc < 7)
-		return print_usage(argv[0]);
-
-	while ((opt = getopt(argc, argv, "e:x:w:")) != -1) {
+	while ((opt = getopt(argc, argv, "e:o:x:w:")) != -1) {
 		switch (opt) {
 		case 'e':
 			*entries = atoi(optarg);
+			break;
+		case 'o':
+			*output = strdup(optarg);
 			break;
 		case 'w':
 			*dataset_w = strdup(optarg);
@@ -48,163 +51,37 @@ int get_opts(int argc, char *argv[], int *entries, char **dataset_x, char **data
 		}
 	}
 
-	/* Check values */
+	/* Check that values have been given */
 	if (*entries <= 0) {
 		fputs("entries must be > 0!\n", stderr);
-		return -1;
+		return print_usage(argv[0]);
+	} else if (!*output || !*dataset_w || !*dataset_x) {
+		return print_usage(argv[0]);
 	}
 
-	if (access(*dataset_x, F_OK) == -1) {
-		perror(*dataset_x);
-		free(*dataset_x);
-		free(*dataset_w);
-		return -2;
-	}
-
-	stat(*dataset_x, &statbuf);
-	if (!S_ISDIR(statbuf.st_mode)) {
-		fputs("Dataset X must be a directory!\n", stderr);
-		return -2;
-	}
-
-	if (access(*dataset_w, F_OK) == -1) {
+	/* Dataset W */
+	if (access(*dataset_w, R_OK) == -1) {
 		perror(*dataset_w);
-		free(*dataset_x);
-		free(*dataset_w);
 		return -2;
 	}
 
 	stat(*dataset_w, &statbuf);
 	if (!S_ISREG(statbuf.st_mode)) {
 		fputs("Dataset W must be a (csv) file!\n", stderr);
+		return print_usage(argv[0]);
+	}
+
+	/* Dataset X */
+	if (access(*dataset_x, R_OK) == -1) {
+		perror(*dataset_x);
 		return -2;
 	}
 
-	return 0;
-}
-
-int get_json(char *path, int *spec_field_count, char ***spec_properties, char ***spec_values) {
-	FILE *json;
-	char *buffer, *property, *value, *saveptr;
-
-	/* Initialize as NULL, old arrays are part of spec nodes now */
-	*spec_properties = NULL, *spec_values = NULL;
-	*spec_field_count = 0;
-
-	if (!(buffer = malloc(BUFFER_SIZE))) {
-		fputs("Couldn't allocate space for buffer", stderr);
-		return -1;
-	};
-
-	if (!(json = fopen(path, "r"))) {
-		perror(path);
-		return -2;
+	stat(*dataset_x, &statbuf);
+	if (!S_ISDIR(statbuf.st_mode)) {
+		fputs("Dataset X must be a directory!\n", stderr);
+		return print_usage(argv[0]);
 	}
-
-	while (fgets(buffer, BUFFER_SIZE, json)) {
-		if (buffer[0] == '{' || buffer[0] == '}')
-			continue;
-
-		/* New field entry, resize arrays */
-		(*spec_field_count)++;
-		*spec_properties = realloc(*spec_properties, *spec_field_count * sizeof(**spec_properties));
-		*spec_values = realloc(*spec_values, *spec_field_count * sizeof(**spec_values));
-
-		/* Save field line [property, value] in parallel arrays */
-		strtok_r(buffer, "\"", &saveptr);            /* 1. Whitespace */
-		property = strtok_r(NULL, "\"", &saveptr);     /* 2. Property */
-		strtok_r(NULL, "\"", &saveptr);               /* 3. Semicolon */
-		value = strtok_r(NULL, "\"", &saveptr);           /* 4. Value */
-
-		// Test print
-		printf("[%d] %s = %s\n", *spec_field_count, property, value);
-
-		(*spec_properties)[*spec_field_count - 1] = strdup(property);
-		(*spec_values)[*spec_field_count - 1] = strdup(value);
-	}
-
-	fclose(json);
-	free(buffer);
-
-	return 0;
-}
-
-int insert_specs(hashtable *hash_table, char *path) {
-	DIR *dir;
-	struct dirent *dirent;
-
-	char buf[512];
-
-	// TODO: If no information hiding, node here
-	char *spec_id;
-	int spec_field_count;
-	char **spec_properties, **spec_values;
-
-	dir = opendir(path);
-
-	while ((dirent = readdir(dir))) {
-		/* Skip dot-files/folders, like ".." */
-		if (dirent->d_name[0] == '.')
-			continue;
-
-		/* Recurse into site (e.g. www.ebay.com) subdirectories
-		 * Note:Not all filesystems support d_type ! */
-
-		/* buf is the full path to the current dir entry (folder or .json) */
-		sprintf(buf, "%s/%s", path, dirent->d_name);
-
-		if (dirent->d_type == DT_DIR) {
-			insert_specs(hash_table, buf);
-		} else {
-			/* Read spec properties from json */
-			get_json(buf, &spec_field_count, &spec_properties, &spec_values);
-
-			/* Get spec id (e.g. buy.net//10) */
-			sprintf(buf, "%s//%s", basename(path), dirent->d_name);
-			*strrchr(buf, '.') = '\0'; /* Remove (.json) extension from id */
-			spec_id = buf;
-
-			// Print id
-			puts(spec_id);
-
-			/* Ready for hashtable insertion */
-			insert_entry(hash_table, spec_id, spec_field_count, spec_properties, spec_values);
-		}
-	}
-
-	closedir(dir);
-
-	return 0;
-}
-
-int join_specs(hashtable *hash_table, char *dataset_w) {
-	FILE *csv;
-
-	char buffer[512];
-	char *left_spec, *right_spec, *label, *saveptr;
-
-	if (!(csv = fopen(dataset_w, "r"))) {
-		perror(dataset_w);
-		return -1;
-	}
-
-	fgets(buffer, sizeof(buffer), csv); /* Skip first line (column titles) */
-
-	while (fgets(buffer, sizeof(buffer), csv)) {
-		left_spec = strtok_r(buffer, ",", &saveptr);
-		right_spec = strtok_r(NULL, ",", &saveptr);
-		label = strtok_r(NULL, ",", &saveptr);
-
-		/* We only care about cliques */
-		if (label[0] == '1') {
-			// TODO: hash_table_join (left, right)
-
-			// Print
-			printf("%s <=> %s\n", left_spec, right_spec);
-		}
-	}
-
-	fclose(csv);
 
 	return 0;
 }
@@ -213,25 +90,15 @@ int main(int argc, char *argv[]) {
 	int ret = 0;
 
 	/* args: returned from parsing function get_opts */
-	int entries = 0;
-	char *dataset_x = NULL, *dataset_w = NULL;
+	int entries;
+	char *output, *dataset_x, *dataset_w;
 
-	hashtable hash_table;
+	if (!(ret = get_opts(argc, argv, &entries, &output, &dataset_x, &dataset_w)))
+		ret = begin_operations(entries, output, dataset_x, dataset_w);
 
-	if ((ret = get_opts(argc, argv, &entries, &dataset_x, &dataset_w)))
-		return ret;
-
-	// Print arguments
-	printf("e: %d, w: %s, x: %s\n", entries, dataset_w, dataset_x);
-
-	hash_table = hashtable_init(entries);
-
-	// The (spec) fun begins:
-	insert_specs(&hash_table, dataset_x);
-	join_specs(&hash_table, dataset_w);
-
-	delete_hashtable(&hash_table);
-
+	free(output);
 	free(dataset_w);
 	free(dataset_x);
+
+	return ret;
 }
