@@ -8,6 +8,7 @@
 *.lss
 *.map
 *.sym
+.vscode/
 
 # Executables
 bin/
