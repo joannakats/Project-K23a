@@ -30,7 +30,7 @@ void print_fields(fields *f) {
 /* returns the spec node that has just been inserted */
 node *spec_init(char *id, int numOfFields, char **properties, char **values) {
   /* allocate memory of spec */
-  node *spec = malloc(sizeof(node));
+	node *spec = malloc(sizeof(node));
 
   spec->id = malloc(sizeof(char)*(strlen(id)+1));
   strcpy(spec->id, id);

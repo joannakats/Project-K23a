@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #ifndef _SPEC_H
 #define _SPEC_H
 
@@ -12,7 +13,7 @@ typedef struct node {
   char *id;
   struct node *next;
   struct cliqueNode *clique;
-  bool hasListOfClique; // if true then this node "contains" the list of the clique originally 
+  bool hasListOfClique; // if true then this node "contains" the list of the clique originally
   fields *fields;
 } node;
 
