@@ -15,3 +15,6 @@ bin/
 
 # Valgrind
 vgcore.*
+
+# Output files
+*.csv
