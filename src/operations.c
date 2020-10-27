@@ -8,13 +8,14 @@
 
 #define BUFFER_SIZE 8192
 
-/* TODO: Spec structure subject to change */
-int read_spec_from_json(char *path, int *spec_field_count, char ***spec_properties, char ***spec_values) {
+int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) {
 	FILE *json;
 	char *buffer, *property, *value, *saveptr;
 
-	/* Initialize as NULL, old arrays are part of spec nodes now */
-	*spec_properties = NULL, *spec_values = NULL;
+	field *current_field;
+
+	/* Initialize as NULL, old field structs are part of spec nodes now */
+	*spec_fields = NULL;
 	*spec_field_count = 0;
 
 	if (!(buffer = malloc(BUFFER_SIZE))) {
@@ -33,21 +34,59 @@ int read_spec_from_json(char *path, int *spec_field_count, char ***spec_properti
 
 		/* New field entry, resize arrays */
 		(*spec_field_count)++;
-		*spec_properties = realloc(*spec_properties, *spec_field_count * sizeof(**spec_properties));
-		*spec_values = realloc(*spec_values, *spec_field_count * sizeof(**spec_values));
+		*spec_fields = realloc(*spec_fields, *spec_field_count * sizeof(**spec_fields));
 
-		/* Save field line [property, value] in parallel arrays */
+		/* TODO: error checking */
+
+		current_field = &(*spec_fields)[*spec_field_count - 1];
+
+		/* Parse field line */
 		strtok_r(buffer, "\"", &saveptr);            /* 1. Whitespace */
 		property = strtok_r(NULL, "\"", &saveptr);     /* 2. Property */
 		strtok_r(NULL, "\"", &saveptr);               /* 3. Semicolon */
 		value = strtok_r(NULL, "\"", &saveptr);           /* 4. Value */
 
-		// Test print
-		printf("[%d] %s = %s\n", *spec_field_count, property, value);
+		/* Set current field property and value count, initially = 1 */
+		setField(current_field, 1, property);
 
-		(*spec_properties)[*spec_field_count - 1] = strdup(property);
-		(*spec_values)[*spec_field_count - 1] = strdup(value);
+		/* If value is a string (with quotes), strtok will return it.
+		 * As it stands, strtok returning NULL at this point means that
+		 * value is a JSON array that starts with '[' on the first line */
+		if (value) {
+			setValue(current_field, 0, value);
+		} else {
+			/* We have a JSON array[] in our hands! */
+
+			current_field->cnt = 0;  /* Set to zero, incremented to 1 in the loop */
+			while (fgets(buffer, BUFFER_SIZE, json)) {
+				/* The last line of the array is a closing bracket ']' */
+				if (strchr(buffer, ']'))
+					break;
+
+				strtok_r(buffer, "\"", &saveptr);            /* 1. Whitespace */
+				value = strtok_r(NULL, "\"", &saveptr);    /* 2. Array member */
+
+				current_field->cnt++;
+				current_field->values = realloc(current_field->values, current_field->cnt * sizeof(current_field->values[0]));
+
+				setValue(current_field, current_field->cnt - 1, value);
+			}
+		}
+
+		// Test print
+		printf("[%d] %s = [ %s", *spec_field_count, current_field->property, current_field->values[0]);
+		for (int i = 1; i < current_field->cnt; ++i) {
+			printf(" ][ %s", current_field->values[i]);
+		}
+		puts(" ]");
 	}
+
+	/* TODO: this freeing of memory will normally happen upon spec deletion */
+	for (int i = 0; i < *spec_field_count; i++)
+		deleteField((*spec_fields)[i]);
+
+	free(*spec_fields);
+	/* Just for Valgrind testing */
 
 	fclose(json);
 	free(buffer);
@@ -64,7 +103,7 @@ int insert_specs(hashtable *hash_table, char *path) {
 
 	char *spec_id;
 	int spec_field_count;
-	char **spec_properties, **spec_values;
+	field *spec_fields;
 
 	dir = opendir(path);
 
@@ -77,11 +116,11 @@ int insert_specs(hashtable *hash_table, char *path) {
 		sprintf(buf, "%s/%s", path, dirent->d_name);
 
 		/* Recurse into site (e.g. www.ebay.com) subdirectories
-		 * NOTE: DT_UNKOWN for some filesystems */
+		 * NOTE: DT_UNKNOWN for some filesystems */
 		if (dirent->d_type == DT_DIR) {
 			insert_specs(hash_table, buf);
 		} else {
-			read_spec_from_json(buf, &spec_field_count, &spec_properties, &spec_values);
+			read_spec_from_json(buf, &spec_field_count, &spec_fields);
 
 			/* Create spec id (e.g. buy.net//10) */
 			sprintf(buf, "%s//%s", basename(path), dirent->d_name);
