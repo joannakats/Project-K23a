@@ -10,9 +10,11 @@
 *.sym
 
 # Executables
+bin/
 *.exe
-specs
-main
 
 # Valgrind
 vgcore.*
+
+# Output files
+*.csv
