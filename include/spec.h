@@ -3,23 +3,23 @@
 #define _SPEC_H
 
 typedef struct fields {
-  //properties and values are stored accordingly
-  char **properties;
-  char **values;
-  int cnt; //counter of fields stored
+	//properties and values are stored accordingly
+	char **properties;
+	char **values;
+	int cnt; //counter of fields stored
 } fields;
 
 typedef struct node {
-  char *id;
-  struct node *next;
-  struct cliqueNode *clique;
-  bool hasListOfClique; // if true then this node "contains" the list of the clique originally
-  fields *fields;
+	char *id;
+	struct node *next;
+	struct cliqueNode *clique;
+	bool hasListOfClique; // if true then this node "contains" the list of the clique originally
+	fields *fields;
 } node;
 
 typedef struct cliqueNode {
-  struct cliqueNode *next; //next in the list of this clique
-  struct node *spec;
+	struct cliqueNode *next; //next in the list of this clique
+	struct node *spec;
 } cliqueNode;
 
 void print_list(node *);
