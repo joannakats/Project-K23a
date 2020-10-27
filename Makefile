@@ -1,25 +1,32 @@
 CFLAGS = -Wall -Wextra -pedantic -I ./include/
 
-OBJ = $(patsubst %.c,%.o,$(wildcard src/*.c))
+SRC_OBJ = $(patsubst %.c,%.o,$(wildcard src/*.c))
+TEST_OBJ = $(patsubst %.c,%.o,$(wildcard tests/*.c))
 HDR = $(wildcard include/*.h)
 TARGET = specs
-
-all: $(TARGET)
 
 %.o: %.c $(HDR)
 	$(CC) $(CFLAGS) -g -c $< -o $@
 
-# Individual targets for testing
-main: src/main.o
-	$(CC) $(CFLAGS) $^ -o $@
+# Final executable
+$(TARGET): $(SRC_OBJ) $(HDR)
+	$(CC) $(CFLAGS) $^ -o bin/$@
+
+# Tests
 
 hashtable: src/hashtable.o
 
 spec: src/spec.o
 
-# Final executable
-$(TARGET): $(OBJ) $(HDR)
-	$(CC) $(CFLAGS) $^ -o $@
+cliquep: tests/clique_print.o src/spec.o include/spec.h
+	$(CC) $(CFLAGS) $^ -o bin/$@
 
+# New test? Put the *.c file with your main in tests/
+# and make a new rule like the above cliquep with its dependencies
+
+# The all-important clean target
 clean:
-	$(RM) $(OBJ) $(TARGET) main
+	$(RM) -r $(SRC_OBJ) $(TEST_OBJ) bin/
+
+# This will create the bin directory after Makefile parsing
+$(info $(shell mkdir -p bin/))

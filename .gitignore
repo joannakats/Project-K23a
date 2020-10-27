@@ -10,9 +10,8 @@
 *.sym
 
 # Executables
+bin/
 *.exe
-specs
-main
 
 # Valgrind
 vgcore.*
