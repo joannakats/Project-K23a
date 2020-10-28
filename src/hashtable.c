@@ -27,9 +27,9 @@ unsigned  long  hash(const char* key,int tableSize){
 	return result;
 }
 
-void insert_entry(hashtable* hsTable,char* spec,int numOfFields,char **properties,char **values) {
-	int index = hash(spec, hsTable->tableSize);
-	node *temp = spec_insert(hsTable->list[index],spec,numOfFields,properties,values);
+void insert_entry(hashtable* hsTable,char* id,field *fieldsArray,int numOfFields) {
+	int index = hash(id, hsTable->tableSize);
+	node *temp = spec_insert(hsTable->list[index],id,fieldsArray,numOfFields);
 	if(hsTable->list[index]==NULL)
 		hsTable->list[index] = temp;
 }
