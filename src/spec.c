@@ -178,6 +178,13 @@ node *search_spec(node *head, char *id, int *pos) {
 /* after the execution of this function spec1 will point to its list of clique nodes and spec2
 	will point to spec1's list of clique nodes */
 void clique_rearrange(node *spec1, node *spec2) {
+	/* to avoid wrong values for boolean hasListOfClique in struct node */
+	if (spec1->hasListOfClique == T && spec2->hasListOfClique == F) {
+		node *tmp = spec1;
+		spec1 = spec2;
+		spec2 = tmp;
+	}
+
 	cliqueNode * temp = spec2->clique; //head of the list of clique nodes that spec2 points to
 	spec2->clique = spec1->clique;
 	spec2->hasListOfClique = false;
