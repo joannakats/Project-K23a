@@ -4,22 +4,25 @@
 #include <string.h>
 #include <stdlib.h>
 
-/*void print_list(node *head) {
+void print_list(node *head) {
 	node *current = head;
 	while(current != NULL) {
-		print_fields(current->fields);
+		print_fields(current->fields, current->fieldCount);
 		current = current->next;
 	}
 }
 
-void print_fields(fields *f) {
-	int dim = f->cnt;
+void print_fields(field *array, int dim) {
 	for (int i = 0; i < dim; i++) {
-		printf("%s: %s\n", f->properties[i], f->values[i]);
+		printf("%s: ", array[i].property);
+		for (int j = 0; j < array[i].cnt; j++) {
+			printf("%s ", array[i].values[j]);
+		}
+		printf("\n");
 	}
 	printf("\n\n");
 }
-*/
+
 
 /* creates the spec node and initializes its attrubutes */
 /* requirement: the arrays of fields, properties and values, have been allocated
@@ -55,7 +58,11 @@ void setField(field *field, int numOfValues, char *property) {
 	field->property = strdup(property);
 	field->cnt = numOfValues;
 	field->values = malloc(numOfValues * sizeof(char*));
+	for (int i = 0; i < numOfValues; i++) {
+		field->values[i] = NULL;
+	}
 }
+
 
 /* set a certain value of the array f->values to value */
 void setValue(field *f, int index, char *value) {

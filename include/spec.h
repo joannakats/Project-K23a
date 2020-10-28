@@ -14,7 +14,7 @@ typedef struct node {
 	struct cliqueNode *clique; // list of clique
 	bool hasListOfClique; // if true then this node "contains" the list of the clique originally
 	field *fields; // array of fields
-	int fieldCount; // counter of pairs <property - value>
+	int fieldCount; // counter of pairs <property - value> (the size of the array)
 } node;
 
 typedef struct cliqueNode {
@@ -22,17 +22,17 @@ typedef struct cliqueNode {
 	struct node *spec;
 } cliqueNode;
 
-/*void print_list(node *);
-void print_fields(fields *);*/
-node *spec_init(char *, field *, int);
-field *createFieldArray(int);
-void setField(field *, int numOfValues, char *);
-void setValue(field *, int, char *);
-void deleteField(field );
-cliqueNode *clique_init(node *);
-node *spec_insert(node *, char *, field *, int);
-void delete_clique(cliqueNode *);
-void delete_specNode(node *);
-void delete_specList(node *);
-node *search_spec(node *, char *);
+void print_list(node *head);
+void print_fields(field *array, int dim);
+node *spec_init(char *id, field *fieldsArray, int numOfFields);
+field *createFieldArray(int dim);
+void setField(field *field, int numOfValues, char *property);
+void setValue(field *f, int index, char *value);
+void deleteField(field f);
+cliqueNode *clique_init(node *spec);
+node *spec_insert(node *head, char *id, field *fieldsArray, int numOfFields);
+void delete_clique(cliqueNode *node);
+void delete_specNode(node *spec);
+void delete_specList(node *head);
+node *search_spec(node *head, char *id);
 #endif
