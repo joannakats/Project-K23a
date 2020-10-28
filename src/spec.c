@@ -1,4 +1,3 @@
-// I HAVE TO TEST IT
 #include "spec.h"
 #include <stdio.h>
 #include <string.h>
@@ -159,14 +158,18 @@ void delete_specList(node *head) {
 
 /* returns the spec with the given id if it exists in the list,
 	 otherwise it returns NULL */
-node *search_spec(node *head, char *id) {
+node *search_spec(node *head, char *id, int *pos) {
 	node *current = head;
+	*pos = 1;
 	while (current != NULL) {
 		if (strcmp(current->id, id) == 0) {
 			return current;
 		}
 		current = current->next;
+		(*pos)++;
 	}
+	/* at this point there hasn't been found a spec with this id */
+	*pos = -1;
 	return NULL;
 }
 

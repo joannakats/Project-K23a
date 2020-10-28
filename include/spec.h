@@ -34,6 +34,6 @@ node *spec_insert(node *head, char *id, field *fieldsArray, int numOfFields);
 void delete_clique(cliqueNode *node);
 void delete_specNode(node *spec);
 void delete_specList(node *head);
-node *search_spec(node *head, char *id);
+node *search_spec(node *head, char *id, int *pos);
 void clique_rearrange(node *spec1, node *spec2);
 #endif
