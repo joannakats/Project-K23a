@@ -169,3 +169,21 @@ node *search_spec(node *head, char *id) {
 	}
 	return NULL;
 }
+
+
+/* requirement: spec1 and spec2 are alike */
+/* after the execution of this function spec1 will point to its list of clique nodes and spec2
+	will point to spec1's list of clique nodes */
+void clique_rearrange(node *spec1, node *spec2) {
+	cliqueNode * temp = spec2->clique; //head of the list of clique nodes that spec2 points to
+	spec2->clique = spec1->clique;
+	spec2->hasListOfClique = false;
+
+	/* traverse spec1 clique to insert spec2's clique */
+	cliqueNode *clN = spec1->clique;
+	while(clN->next != NULL) {
+		clN = clN->next;
+	}
+
+	clN->next = temp;
+}

@@ -35,4 +35,5 @@ void delete_clique(cliqueNode *node);
 void delete_specNode(node *spec);
 void delete_specList(node *head);
 node *search_spec(node *head, char *id);
+void clique_rearrange(node *spec1, node *spec2);
 #endif
