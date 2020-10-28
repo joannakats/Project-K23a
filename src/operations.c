@@ -8,9 +8,63 @@
 
 #define BUFFER_SIZE 8192
 
+int parse_json_field(FILE *json, char *line, field *current_field) {
+	char *property, *value, *saveptr;
+
+	/* Parse field line */
+	strtok_r(line, "\"", &saveptr);    /* 1. Whitespace before "property" */
+	property = strtok_r(NULL, "\"", &saveptr);             /* 2. Property */
+
+	strtok_r(NULL, "\"", &saveptr);                            /* 3. ": " */
+
+	/* At this point if saveptr still points to remaining data, there exists
+	 * a single quoted string value. Otherwise the remainder of the line was
+	 * a starting bracket for a JSON array and saveptr will be empty, after
+	 * exhausting the search for the quotes around "value" */
+
+	/* Set current field property and value count, initially = 1 */
+	setField(current_field, 1, property);
+
+	if (saveptr[0]) {
+		/* Single quoted "value" string
+		 * e.g. "battery": "Li-ion" */
+		*strrchr(saveptr, '"') = '\0';
+		value = saveptr;                                  /* 4. Value */
+
+		setValue(current_field, 0, value);
+	} else {
+		/* We have a JSON array[] in our hands!
+		 * e.g. "color" : [
+		 *    "red",
+		 *    "blue"
+		 * ] */
+
+		/* Set to zero, incremented to 1 in the loop */
+		current_field->cnt = 0;
+		while (fgets(line, BUFFER_SIZE, json)) {
+			/* The closing bracket ] denotes the end of the array */
+			if (strchr(line, ']'))
+				break;
+
+			/* Similar strategy to single string value:
+			 * 1. Whitespace before "array member" */
+			strtok_r(line, "\"", &saveptr);
+			*strrchr(saveptr, '"') = '\0';
+			value = saveptr;                   /* 2. Array member */
+
+			current_field->cnt++;
+			current_field->values = realloc(current_field->values, current_field->cnt * sizeof(current_field->values[0]));
+
+			setValue(current_field, current_field->cnt - 1, value);
+		}
+	}
+
+	return 0;
+}
+
 int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) {
 	FILE *json;
-	char *buffer, *property, *value, *saveptr;
+	char *line;
 
 	field *current_field;
 
@@ -18,9 +72,9 @@ int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) 
 	*spec_fields = NULL;
 	*spec_field_count = 0;
 
-	if (!(buffer = malloc(BUFFER_SIZE))) {
-		fputs("Couldn't allocate space for buffer", stderr);
-		return -1;
+	if (!(line = malloc(BUFFER_SIZE))) {
+		perror("line buffer");
+		return -3;
 	};
 
 	if (!(json = fopen(path, "r"))) {
@@ -28,50 +82,21 @@ int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) 
 		return -2;
 	}
 
-	while (fgets(buffer, BUFFER_SIZE, json)) {
-		if (buffer[0] == '{' || buffer[0] == '}')
+	while (fgets(line, BUFFER_SIZE, json)) {
+		if (line[0] == '{' || line[0] == '}')
 			continue;
 
 		/* New field entry, resize arrays */
 		(*spec_field_count)++;
 		*spec_fields = realloc(*spec_fields, *spec_field_count * sizeof(**spec_fields));
 
-		/* TODO: error checking */
+		if (!*spec_fields) {
+			perror("spec_fields");
+			return -3;
+		}
 
 		current_field = &(*spec_fields)[*spec_field_count - 1];
-
-		/* Parse field line */
-		strtok_r(buffer, "\"", &saveptr);            /* 1. Whitespace */
-		property = strtok_r(NULL, "\"", &saveptr);     /* 2. Property */
-		strtok_r(NULL, "\"", &saveptr);               /* 3. Semicolon */
-		value = strtok_r(NULL, "\"", &saveptr);           /* 4. Value */
-
-		/* Set current field property and value count, initially = 1 */
-		setField(current_field, 1, property);
-
-		/* If value is a string (with quotes), strtok will return it.
-		 * As it stands, strtok returning NULL at this point means that
-		 * value is a JSON array that starts with '[' on the first line */
-		if (value) {
-			setValue(current_field, 0, value);
-		} else {
-			/* We have a JSON array[] in our hands! */
-
-			current_field->cnt = 0;  /* Set to zero, incremented to 1 in the loop */
-			while (fgets(buffer, BUFFER_SIZE, json)) {
-				/* The last line of the array is a closing bracket ']' */
-				if (strchr(buffer, ']'))
-					break;
-
-				strtok_r(buffer, "\"", &saveptr);            /* 1. Whitespace */
-				value = strtok_r(NULL, "\"", &saveptr);    /* 2. Array member */
-
-				current_field->cnt++;
-				current_field->values = realloc(current_field->values, current_field->cnt * sizeof(current_field->values[0]));
-
-				setValue(current_field, current_field->cnt - 1, value);
-			}
-		}
+		parse_json_field(json, line, current_field);
 
 		// Test print
 		printf("[%d] %s = [ %s", *spec_field_count, current_field->property, current_field->values[0]);
@@ -81,15 +106,8 @@ int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) 
 		puts(" ]");
 	}
 
-	/* TODO: this freeing of memory will normally happen upon spec deletion */
-	for (int i = 0; i < *spec_field_count; i++)
-		deleteField((*spec_fields)[i]);
-
-	free(*spec_fields);
-	/* Just for Valgrind testing */
-
 	fclose(json);
-	free(buffer);
+	free(line);
 
 	return 0;
 }
@@ -131,8 +149,7 @@ int insert_specs(hashtable *hash_table, char *path) {
 			printf("%s\n\n", spec_id);
 
 			/* Ready for hashtable insertion */
-			/* TODO: Enable after fields revamp */
-			//insert_entry(hash_table, spec_id, spec_field_count, spec_properties, spec_values);
+			insert_entry(hash_table, spec_id, spec_fields, spec_field_count);
 		}
 	}
 
