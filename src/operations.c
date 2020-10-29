@@ -6,14 +6,23 @@
 
 #include "hashtable.h"
 
-#define BUFFER_SIZE 8192
+/* Dictated by huge values in some spec specifications */
+#define BUFFER_SIZE 16384
 
 int parse_json_field(FILE *json, char *line, field *current_field) {
 	char *property, *value, *saveptr;
 
 	/* Parse field line */
 	strtok_r(line, "\"", &saveptr);    /* 1. Whitespace before "property" */
-	property = strtok_r(NULL, "\"", &saveptr);             /* 2. Property */
+
+	/* 2. Property
+	 * Quirk: If the property field is empty (""), such as in
+	 * www.camerafarm.com.au/758.json, we can detect that because saveptr
+	 * will start from the closing quote of the empty property field */
+	if (saveptr[0] == '"')
+		property = "";
+	else
+		property = strtok_r(NULL, "\"", &saveptr);
 
 	strtok_r(NULL, "\"", &saveptr);                            /* 3. ": " */
 
@@ -42,13 +51,15 @@ int parse_json_field(FILE *json, char *line, field *current_field) {
 		/* Set to zero, incremented to 1 in the loop */
 		current_field->cnt = 0;
 		while (fgets(line, BUFFER_SIZE, json)) {
-			/* The closing bracket ] denotes the end of the array */
-			if (strchr(line, ']'))
-				break;
-
 			/* Similar strategy to single string value:
 			 * 1. Whitespace before "array member" */
 			strtok_r(line, "\"", &saveptr);
+
+			/* A line with a single bracket ] denotes the end of the array.
+			 * saveptr will be an empty string because no quote was found */
+			if (!saveptr[0])
+				break;
+
 			*strrchr(saveptr, '"') = '\0';
 			value = saveptr;                   /* 2. Array member */
 
