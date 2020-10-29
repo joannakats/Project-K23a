@@ -14,7 +14,7 @@ int print_usage(const char *path) {
 
 	if (program) {
 		fprintf(stderr,
-			"Usage: %s -e buckets -o output -w dataset_w -x dataset_x\n",
+			"Usage: %s [-e buckets (default: 10007)] -o output -w dataset_w -x dataset_x\n",
 			basename(program));
 	}
 
