@@ -64,3 +64,57 @@ int delete_hashtable(hashtable *hsTable){
 	free(hsTable->list);
 	return 0;
 }
+
+/* printing hashtable for debug */
+void print_hashTable(const hashtable *hsTable){
+	if(hsTable!=NULL){
+		node* current;
+		cliqueNode* cliqueNode;
+		for(int i=0;i<hsTable->tableSize;i++){
+			printf("\nPosition in the hashtable : %d \n",i);
+			current=hsTable->list[i];
+			while(current!=NULL){
+				printf("\nSpec: %s \n",current->id);
+				if(current->hasListOfClique==true){
+					printf("Clique: ");
+					cliqueNode=current->clique;
+					while(cliqueNode!=NULL){
+						printf("%s\n",cliqueNode->spec->id);
+						cliqueNode=cliqueNode->next;
+					}
+				}
+				current=current->next;
+			}
+		}
+	}
+}
+
+void print_pairs(const hashtable *hsTable){
+	if(hsTable!=NULL){
+		node* current;
+		cliqueNode *cliqueLeft,*cliqueRight;
+		for(int i=0;i<hsTable->tableSize;i++){
+			//printf("\nPosition in the hashtable : %d \n",i);
+			current=hsTable->list[i];
+			while(current!=NULL){
+				//printf("\nSpec: %s \n",current->id);
+				if(current->hasListOfClique==true){
+				//	printf("Clique: ");
+					cliqueLeft=current->clique;
+					while(cliqueLeft->next!=NULL){
+						cliqueRight=cliqueLeft->next;
+						while(cliqueRight!=NULL){
+							printf("%s,%s\n",cliqueLeft->id,cliqueRight->id);
+							cliqueRight=cliqueRight->next;
+						}
+						cliqueLeft=cliqueLeft->next;
+					}
+				}
+				current=current->next;
+			}
+			
+		}
+	}
+}
+
+

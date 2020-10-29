@@ -16,5 +16,7 @@ void insert_entry(hashtable* hsTable,char* id,field *fieldsArray,int numOfFields
 node *search_hashTable_spec(hashtable* hsTable,char* id,int* pos);
 void hash_table_join(hashtable* hsTable,char* left_id,char* right_id); 
 int delete_hashtable(hashtable *hsTable);
+void print_hashTable(const hashtable *hsTable);
+void print_pairs(const hashtable *hsTable);//needs more testing
 
 #endif
