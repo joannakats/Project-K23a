@@ -28,11 +28,11 @@ void print_pairs(node *head) {
 int main() {
 	node *head = NULL;
 
-	head = spec_insert(head, "A", 0, NULL, NULL);
-	spec_insert(head, "C", 0, NULL, NULL);
-	spec_insert(head, "B", 0, NULL, NULL);
-	//spec_insert(head, "D", 0, NULL, NULL);
-	//spec_insert(head, "K", 0, NULL, NULL);
+	head = spec_insert(head, "A", NULL, 0);
+	spec_insert(head, "C", NULL, 0);
+	spec_insert(head, "B", NULL, 0);
+	//spec_insert(head, "D", NULL, 0);
+	//spec_insert(head, "K", NULL, 0);
 
 	print_pairs(head);
 
