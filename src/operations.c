@@ -108,6 +108,13 @@ int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) 
 
 		current_field = &(*spec_fields)[*spec_field_count - 1];
 		parse_json_field(json, line, current_field);
+
+		// Test print
+		printf("[%d] %s = [ %s", *spec_field_count, current_field->property, current_field->values[0]);
+		for (int i = 1; i < current_field->cnt; ++i) {
+			printf(" ][ %s", current_field->values[i]);
+		}
+		puts(" ]");
 	}
 
 	fclose(json);
@@ -149,6 +156,9 @@ int insert_specs(hashtable *hash_table, char *path) {
 			*strrchr(buf, '.') = '\0'; /* Remove (.json) extension from id */
 			spec_id = buf;
 
+			// Print id
+			printf("%s\n\n", spec_id);
+
 			/* Ready for hashtable insertion */
 			insert_entry(hash_table, spec_id, spec_fields, spec_field_count);
 		}
@@ -163,7 +173,7 @@ int insert_specs(hashtable *hash_table, char *path) {
 int join_specs(hashtable *hash_table, char *dataset_w) {
 	FILE *csv;
 
-	char line[512];
+	char buffer[512];
 	char *left_spec, *right_spec, *label, *saveptr;
 
 	if (!(csv = fopen(dataset_w, "r"))) {
@@ -171,16 +181,20 @@ int join_specs(hashtable *hash_table, char *dataset_w) {
 		return -1;
 	}
 
-	fgets(line, sizeof(line), csv); /* Skip first line (column titles) */
+	fgets(buffer, sizeof(buffer), csv); /* Skip first line (column titles) */
 
-	while (fgets(line, sizeof(line), csv)) {
-		left_spec = strtok_r(line, ",", &saveptr);
+	while (fgets(buffer, sizeof(buffer), csv)) {
+		left_spec = strtok_r(buffer, ",", &saveptr);
 		right_spec = strtok_r(NULL, ",", &saveptr);
 		label = strtok_r(NULL, ",", &saveptr);
 
 		/* We only care about cliques */
-		if (label[0] == '1')
-			hash_table_join(hash_table, left_spec, right_spec);
+		if (label[0] == '1') {
+			// TODO: hash_table_join (left, right)
+
+			// Print
+			printf("%s <=> %s\n", left_spec, right_spec);
+		}
 	}
 
 	fclose(csv);
@@ -196,27 +210,8 @@ int begin_operations(int entries, char *output, char *dataset_x, char *dataset_w
 	if (!hash_table.list)
 		return -3;
 
-	puts("Reading Dataset X...");
 	if (!(ret = insert_specs(&hash_table, dataset_x))) {
-		puts("Reading Dataset W...");
 		ret = join_specs(&hash_table, dataset_w);
-	}
-
-	/* TODO: Remove this, just for testing */
-	for (int i =0; i < hash_table.tableSize; ++i) {
-		node *sp = hash_table.list[i];
-
-		while (sp) {
-			cliqueNode *cl = sp->clique;
-			printf("%s [ %s", sp->id, cl->spec->id);
-
-			while ((cl = cl->next))
-				printf(" %s", cl->spec->id);
-
-			puts(" ]");
-
-			sp = sp->next;
-		}
 	}
 
 	/* Cleanup */

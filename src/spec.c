@@ -179,11 +179,6 @@ node *search_spec(node *head, char *id, int *pos) {
 	will point to spec1's list of clique nodes */
 void clique_rearrange(node *spec1, node *spec2) {
 
-	/* if the are already in the same clique there is nothing to be done */
-	if (spec1->clique == spec2->clique) {
-		return;
-	}
-
 	/* to avoid wrong values for boolean hasListOfClique in struct node */
 	if (spec1->hasListOfClique == true && spec2->hasListOfClique == false) {
 		node *tmp = spec1;

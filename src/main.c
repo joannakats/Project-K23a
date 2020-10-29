@@ -14,7 +14,7 @@ int print_usage(const char *path) {
 
 	if (program) {
 		fprintf(stderr,
-			"Usage: %s [-e buckets (default: 10007)] -o output -w dataset_w -x dataset_x\n",
+			"Usage: %s -e buckets -o output -w dataset_w -x dataset_x\n",
 			basename(program));
 	}
 
@@ -26,8 +26,8 @@ int get_opts(int argc, char *argv[], int *entries, char **output, char **dataset
 	int opt;
 	struct stat statbuf;
 
-	*entries = 10007;    /* Default value for hashtable entries (buckets) */
 	/* Zero-initialized to check if given values later */
+	*entries = 0;
 	*output = NULL;
 	*dataset_x = NULL;
 	*dataset_w = NULL;
