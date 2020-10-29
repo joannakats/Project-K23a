@@ -26,8 +26,8 @@ int get_opts(int argc, char *argv[], int *entries, char **output, char **dataset
 	int opt;
 	struct stat statbuf;
 
+	*entries = 10007;    /* Default value for hashtable entries (buckets) */
 	/* Zero-initialized to check if given values later */
-	*entries = 0;
 	*output = NULL;
 	*dataset_x = NULL;
 	*dataset_w = NULL;
