@@ -14,7 +14,7 @@ hashtable hashtable_init(int size);
 unsigned  long hash(const char* key,int tableSize);
 void insert_entry(hashtable* hsTable,char* id,field *fieldsArray,int numOfFields);
 node *search_hashTable_spec(hashtable* hsTable,char* id,int* pos);
-void hash_table_join(hashtable* hsTable,char* left_id,char* right_id); //needs more testing
+void hash_table_join(hashtable* hsTable,char* left_id,char* right_id); 
 int delete_hashtable(hashtable *hsTable);
 
 #endif
