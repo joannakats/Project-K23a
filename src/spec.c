@@ -178,41 +178,25 @@ node *search_spec(node *head, char *id, int *pos) {
 /* after the execution of this function spec1 will point to its list of clique nodes and spec2
 	will point to spec1's list of clique nodes */
 void clique_rearrange(node *spec1, node *spec2) {
+	cliqueNode *temp = spec1->clique;
 
-	/* if the are already in the same clique there is nothing to be done */
-	if (spec1->clique == spec2->clique) {
+	if (spec1->clique == spec2->clique)
 		return;
+
+	/* Find tail of spec1's clique */
+	while (temp->next)
+		temp = temp->next;
+
+	/* Attach spec2's clique to that tail */
+	temp->next = spec2->clique;
+
+	/* Update the specs in that clique to point to the
+	 * newly unified spec1 clique */
+	while ((temp = temp->next)) {
+		temp->spec->clique = spec1->clique;
+		temp->spec->hasListOfClique = false;
 	}
-
-	/* to avoid wrong values for boolean hasListOfClique in struct node */
-	if (spec1->hasListOfClique == true && spec2->hasListOfClique == false) {
-		node *tmp = spec1;
-		spec1 = spec2;
-		spec2 = tmp;
-	}
-
-	node *other_spec;
-	/* in this case two lists of cliques are merging that none of the arguments holds */
-	if (spec1->hasListOfClique == false && spec2->hasListOfClique == false) {
-		cliqueNode *head = spec2->clique;
-		other_spec = search_HostSpec(head);
-		other_spec->clique = spec1->clique;
-		other_spec->hasListOfClique = false;
-	}
-
-	cliqueNode * temp = spec2->clique; //head of the list of clique nodes that spec2 points to
-	spec2->clique = spec1->clique;
-	spec2->hasListOfClique = false;
-
-	/* traverse spec1 clique to insert spec2's clique */
-	cliqueNode *clN = spec1->clique;
-	while(clN->next != NULL) {
-		clN = clN->next;
-	}
-
-	clN->next = temp;
 }
-
 
 /* searches in a list of clique nodes for the node spec that "keeps" this list */
 node *search_HostSpec(cliqueNode *head) {
