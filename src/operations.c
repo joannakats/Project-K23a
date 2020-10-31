@@ -188,6 +188,22 @@ int join_specs(hashtable *hash_table, char *dataset_w) {
 	return 0;
 }
 
+int print_pairs_csv(hashtable *hash_table, char *output) {
+	FILE *output_csv;
+
+	if (!(output_csv = freopen(output, "w", stdout))) {
+		perror(output);
+		return -1;
+	}
+
+	puts("left_spec_id,right_spec_id");
+	print_pairs(hash_table);
+
+	freopen("/dev/tty", "w", stdout);
+
+	return 0;
+}
+
 int begin_operations(int entries, char *output, char *dataset_x, char *dataset_w) {
 	int ret = 0;
 
@@ -199,23 +215,9 @@ int begin_operations(int entries, char *output, char *dataset_x, char *dataset_w
 	puts("Reading Dataset X...");
 	if (!(ret = insert_specs(&hash_table, dataset_x))) {
 		puts("Reading Dataset W...");
-		ret = join_specs(&hash_table, dataset_w);
-	}
-
-	/* TODO: Remove this, just for testing */
-	for (int i =0; i < hash_table.tableSize; ++i) {
-		node *sp = hash_table.list[i];
-
-		while (sp) {
-			cliqueNode *cl = sp->clique;
-			printf("%s [ %s", sp->id, cl->spec->id);
-
-			while ((cl = cl->next))
-				printf(" %s", cl->spec->id);
-
-			puts(" ]");
-
-			sp = sp->next;
+		if (!(ret = join_specs(&hash_table, dataset_w))) {
+			puts("Writing output csv...");
+			ret = print_pairs_csv(&hash_table, output);
 		}
 	}
 
