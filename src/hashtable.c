@@ -49,10 +49,10 @@ void hash_table_join(hashtable* hsTable,char* left_id,char* right_id){
 	//both spec_ids where found
 	if(left_pos!=-1 && right_pos!=-1)
 				clique_rearrange(left_spec,right_spec);
-	
 
-}		
-	
+
+}
+
 
 
 
@@ -104,7 +104,7 @@ void print_pairs(const hashtable *hsTable){
 					while(cliqueLeft->next!=NULL){
 						cliqueRight=cliqueLeft->next;
 						while(cliqueRight!=NULL){
-							printf("%s,%s\n",cliqueLeft->id,cliqueRight->id);
+							printf("%s,%s\n",cliqueLeft->spec->id,cliqueRight->spec->id);
 							cliqueRight=cliqueRight->next;
 						}
 						cliqueLeft=cliqueLeft->next;
@@ -112,9 +112,7 @@ void print_pairs(const hashtable *hsTable){
 				}
 				current=current->next;
 			}
-			
+
 		}
 	}
 }
-
-
