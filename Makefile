@@ -22,4 +22,4 @@ tests/test_insertion: tests/insertion/main.o src/operations.o src/hashtable.o sr
 # The all-important clean target
 .PHONY: clean
 clean:
-	$(RM) -r $(SRC_OBJ) $(TEST_OBJ) $(TARGET) $(TEST_TARGETS)
+	$(RM) -r $(SRC_OBJ) $(TARGET) $(TEST_OBJ) $(TEST_TARGETS)
