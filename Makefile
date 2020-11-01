@@ -16,7 +16,7 @@ $(TARGET): $(SRC_OBJ) $(HDR)
 
 tests: $(TEST_TARGETS)
 
-tests/test_insertion: tests/insertion/main.o src/operations.o src/hashtable.o src/spec.o $(HDR)
+tests/test_insertion: tests/insertion/test.o src/operations.o src/hashtable.o src/spec.o $(HDR)
 	$(CC) $(CFLAGS) $^ -o $@
 
 # The all-important clean target
