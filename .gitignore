@@ -11,7 +11,8 @@
 .vscode/
 
 # Executables
-bin/
+specs
+tests/test_*
 *.exe
 
 # Valgrind
