@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "hashtable.h"
+#include "operations.h"
 
 /* Dictated by huge values in some spec specifications */
 #define BUFFER_SIZE 16384
