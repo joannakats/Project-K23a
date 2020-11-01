@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "common.h"
 #include "operations.h"
 
 int print_usage(const char *path) {
@@ -19,7 +20,7 @@ int print_usage(const char *path) {
 	}
 
 	free(program);
-	return -1;
+	return -1337;
 }
 
 int get_opts(int argc, char *argv[], int *entries, char **output, char **dataset_x, char **dataset_w) {
@@ -62,7 +63,7 @@ int get_opts(int argc, char *argv[], int *entries, char **output, char **dataset
 	/* Dataset W */
 	if (access(*dataset_w, R_OK) == -1) {
 		perror(*dataset_w);
-		return -2;
+		return errno;
 	}
 
 	stat(*dataset_w, &statbuf);
@@ -74,7 +75,7 @@ int get_opts(int argc, char *argv[], int *entries, char **output, char **dataset
 	/* Dataset X */
 	if (access(*dataset_x, R_OK) == -1) {
 		perror(*dataset_x);
-		return -2;
+		return errno;
 	}
 
 	stat(*dataset_x, &statbuf);

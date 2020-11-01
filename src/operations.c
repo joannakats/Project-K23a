@@ -4,10 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "common.h"
 #include "operations.h"
-
-/* Dictated by huge values in some spec specifications */
-#define BUFFER_SIZE 16384
 
 int parse_json_field(FILE *json, char *line, field *current_field) {
 	char *property, *value, *saveptr;
@@ -50,7 +48,7 @@ int parse_json_field(FILE *json, char *line, field *current_field) {
 
 		/* Set to zero, incremented to 1 in the loop */
 		current_field->cnt = 0;
-		while (fgets(line, BUFFER_SIZE, json)) {
+		while (fgets(line, LINE_SIZE, json)) {
 			/* Similar strategy to single string value:
 			 * 1. Whitespace before "array member" */
 			strtok_r(line, "\"", &saveptr);
@@ -83,17 +81,17 @@ int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) 
 	*spec_fields = NULL;
 	*spec_field_count = 0;
 
-	if (!(line = malloc(BUFFER_SIZE))) {
+	if (!(line = malloc(LINE_SIZE))) {
 		perror("line buffer");
-		return -3;
+		return errno;
 	};
 
 	if (!(json = fopen(path, "r"))) {
 		perror(path);
-		return -2;
+		return errno;
 	}
 
-	while (fgets(line, BUFFER_SIZE, json)) {
+	while (fgets(line, LINE_SIZE, json)) {
 		if (line[0] == '{' || line[0] == '}')
 			continue;
 
@@ -103,7 +101,7 @@ int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) 
 
 		if (!*spec_fields) {
 			perror("spec_fields");
-			return -3;
+			return errno;
 		}
 
 		current_field = &(*spec_fields)[*spec_field_count - 1];
@@ -127,7 +125,10 @@ int insert_specs(hashtable *hash_table, char *path) {
 	int spec_field_count;
 	field *spec_fields;
 
-	dir = opendir(path);
+	if (!(dir = opendir(path))) {
+		perror(path);
+		return errno;
+	}
 
 	while ((dirent = readdir(dir))) {
 		/* Skip dot-files/folders, like ".." */
@@ -168,7 +169,7 @@ int join_specs(hashtable *hash_table, char *dataset_w) {
 
 	if (!(csv = fopen(dataset_w, "r"))) {
 		perror(dataset_w);
-		return -1;
+		return errno;
 	}
 
 	fgets(line, sizeof(line), csv); /* Skip first line (column titles) */
@@ -193,7 +194,7 @@ int print_pairs_csv(hashtable *hash_table, char *output) {
 
 	if (!(output_csv = freopen(output, "w", stdout))) {
 		perror(output);
-		return -1;
+		return errno;
 	}
 
 	puts("left_spec_id,right_spec_id");

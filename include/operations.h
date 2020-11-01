@@ -9,4 +9,4 @@ int begin_operations(int entries, char *output, char *dataset_x, char *dataset_w
 int insert_specs(hashtable *hash_table, char *path);
 int join_specs(hashtable *hash_table, char *dataset_w);
 
-#endif
+#endif /* OPERATIONS_H */
