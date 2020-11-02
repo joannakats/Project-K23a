@@ -8,7 +8,7 @@
 #include "operations.h"
 
 int parse_json_field(FILE *json, char *line, field *current_field) {
-	char *property, *value, *saveptr;
+	char *property, *value, *saveptr = NULL;
 
 	/* Parse field line */
 	strtok_r(line, "\"", &saveptr);    /* 1. Whitespace before "property" */
@@ -172,7 +172,11 @@ int join_specs(hashtable *hash_table, char *dataset_w) {
 		return errno;
 	}
 
-	fgets(line, sizeof(line), csv); /* Skip first line (column titles) */
+	/* Skip first line (column titles) */
+	if (!fgets(line, sizeof(line), csv)) {
+		perror("dataset_w is empty");
+		return errno;
+	};
 
 	while (fgets(line, sizeof(line), csv)) {
 		left_spec = strtok_r(line, ",", &saveptr);
@@ -200,7 +204,10 @@ int print_pairs_csv(hashtable *hash_table, char *output) {
 	puts("left_spec_id,right_spec_id");
 	print_pairs(hash_table);
 
-	freopen("/dev/tty", "w", stdout);
+	if (!freopen("/dev/tty", "w", stdout)) {
+		perror("freopen() for stdout");
+		return errno;
+	}
 
 	return 0;
 }
