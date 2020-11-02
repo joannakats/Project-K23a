@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -pedantic -I ./include/ -Og -g
+CFLAGS = -Wall -Wextra -pedantic -Iinclude -Og -g
 
 HDR = $(wildcard include/*.h)
 SRC_OBJ = $(patsubst %.c,%.o,$(wildcard src/*.c))
@@ -22,4 +22,4 @@ tests/test_insertion: tests/insertion/test.o src/operations.o src/hashtable.o sr
 # The all-important clean target
 .PHONY: clean
 clean:
-	$(RM) -r $(SRC_OBJ) $(TARGET) $(TEST_OBJ) $(TEST_TARGETS)
+	$(RM) $(SRC_OBJ) $(TARGET) $(TEST_OBJ) $(TEST_TARGETS)
