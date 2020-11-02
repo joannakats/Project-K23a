@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -pedantic -I ./include/
+CFLAGS = -Wall -Wextra -pedantic -I ./include/ -Og -g
 
 HDR = $(wildcard include/*.h)
 SRC_OBJ = $(patsubst %.c,%.o,$(wildcard src/*.c))
@@ -8,7 +8,7 @@ TEST_OBJ = $(patsubst %.c,%.o,$(wildcard tests/*/*.c))
 TEST_TARGETS = tests/test_insertion
 
 %.o: %.c $(HDR)
-	$(CC) $(CFLAGS) -g -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Final executable
 $(TARGET): $(SRC_OBJ) $(HDR)
