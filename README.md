@@ -9,5 +9,9 @@ Leonidas-Panagiotis Papadakos (1115201700117)<br/>
 Run `make`.<br/>
 To build the testing executables (found in tests/), run `make tests`.
 
+## Data Structures
+"A picture is worth a thousand words"
+![Strctures diagram](./structs.svg)
+
 ## Assumptions
 * It is assumed that within the directory of `Dataset X`, there will be only site folders (e.g. www.ebay.com) and .json files.
