@@ -15,7 +15,7 @@ int print_usage(const char *path) {
 
 	if (program) {
 		fprintf(stderr,
-			"Usage: %s [-e buckets (default: 10007)] -o output -w dataset_w -x dataset_x\n",
+			"Usage: %s [-e buckets (default: 10007)] -x dataset_x -w dataset_w [-o FILE (default: stdout)]\n",
 			basename(program));
 	}
 
@@ -56,7 +56,7 @@ int get_opts(int argc, char *argv[], int *entries, char **output, char **dataset
 	if (*entries <= 0) {
 		fputs("entries must be > 0!\n", stderr);
 		return print_usage(argv[0]);
-	} else if (!*output || !*dataset_w || !*dataset_x) {
+	} else if (!*dataset_w || !*dataset_x) {
 		return print_usage(argv[0]);
 	}
 

@@ -196,17 +196,22 @@ int join_specs(hashtable *hash_table, char *dataset_w) {
 int print_pairs_csv(hashtable *hash_table, char *output) {
 	FILE *output_csv;
 
-	if (!(output_csv = freopen(output, "w", stdout))) {
-		perror(output);
-		return errno;
+	/* Print to stdout by default */
+	if (output) {
+		if (!(output_csv = freopen(output, "w", stdout))) {
+			perror(output);
+			return errno;
+		}
 	}
 
 	puts("left_spec_id,right_spec_id");
 	print_pairs(hash_table);
 
-	if (!freopen("/dev/tty", "w", stdout)) {
-		perror("freopen() for stdout");
-		return errno;
+	if (output) {
+		if (!freopen("/dev/tty", "w", stdout)) {
+			perror("freopen() for stdout");
+			return errno;
+		}
 	}
 
 	return 0;
@@ -220,11 +225,11 @@ int begin_operations(int entries, char *output, char *dataset_x, char *dataset_w
 	if (!hash_table.list)
 		return -3;
 
-	puts("Reading Dataset X...");
+	fputs("Reading Dataset X...\n", stderr);
 	if (!(ret = insert_specs(&hash_table, dataset_x))) {
-		puts("Reading Dataset W...");
+		fputs("Reading Dataset W...\n", stderr);
 		if (!(ret = join_specs(&hash_table, dataset_w))) {
-			puts("Writing output csv...");
+			fputs("Writing output csv...\n", stderr);
 			ret = print_pairs_csv(&hash_table, output);
 		}
 	}
