@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -pedantic -Iinclude -Og -g
+CFLAGS = -Wall -Wextra -pedantic -Iinclude -g3
 
 HDR = $(wildcard include/*.h)
 SRC_OBJ = $(patsubst %.c,%.o,$(wildcard src/*.c))
