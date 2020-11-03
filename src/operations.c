@@ -115,40 +115,49 @@ int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) 
 }
 
 /* Reading Dataset X */
-int insert_specs(hashtable *hash_table, char *path) {
+int insert_specs(hashtable *hash_table, char *dataset_x) {
 	DIR *dir;
 	struct dirent *dirent;
 
-	char buf[512];
+	char path[1024], *extention;
 
 	char *spec_id;
 	int spec_field_count;
 	field *spec_fields;
 
-	if (!(dir = opendir(path))) {
-		perror(path);
+	if (!(dir = opendir(dataset_x))) {
+		perror(dataset_x);
 		return errno;
 	}
+
+	/* The path buffer will be modified for each spec, to get the ID format */
+	spec_id = path;
 
 	while ((dirent = readdir(dir))) {
 		/* Skip dot-files/folders, like ".." */
 		if (dirent->d_name[0] == '.')
 			continue;
 
-		/* buf is the full path to the current dir entry (folder or .json) */
-		sprintf(buf, "%s/%s", path, dirent->d_name);
+		/* Get the full path to the current dir entry (folder or .json) */
+		sprintf(path, "%s/%s", dataset_x, dirent->d_name);
 
 		/* Recurse into site (e.g. www.ebay.com) subdirectories
 		 * NOTE: DT_UNKNOWN for some filesystems */
 		if (dirent->d_type == DT_DIR) {
-			insert_specs(hash_table, buf);
+			insert_specs(hash_table, path);
 		} else {
-			read_spec_from_json(buf, &spec_field_count, &spec_fields);
+			/* Skip non-json files */
+			if (!(extention = strrchr(path, '.')))
+				continue;
+			else if (strcmp(extention, ".json"))
+				continue;
+
+			read_spec_from_json(path, &spec_field_count, &spec_fields);
 
 			/* Create spec id (e.g. buy.net//10) */
-			sprintf(buf, "%s//%s", basename(path), dirent->d_name);
-			*strrchr(buf, '.') = '\0'; /* Remove (.json) extension from id */
-			spec_id = buf;
+			sprintf(spec_id, "%s//%s", basename(dataset_x), dirent->d_name);
+			/* Remove extension to get final id */
+			*strrchr(spec_id, '.') = '\0';
 
 			/* Ready for hashtable insertion */
 			insert_entry(hash_table, spec_id, spec_fields, spec_field_count);
