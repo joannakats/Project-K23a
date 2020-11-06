@@ -11,8 +11,8 @@ Leonidas-Panagiotis Papadakos (1115201700117)<br/>
 ![Structures diagram](./structs.svg)
 
 ## Build
-Run `make`.<br/>
-To build the testing executables (found in tests/), run `make tests`.
+Run `make`, to build the executables and unit tests<br/>
+To run the testing executables, (found in tests/), run `make check`.
 
 ## Usage
 `./specs [-e buckets (default: 10007)] -x dataset_x -w dataset_w [-o FILE (default: stdout)]`
