@@ -14,12 +14,22 @@ TEST_TARGETS = tests/test_insertion
 $(TARGET): $(SRC_OBJ) $(HDR)
 	$(CC) $(CFLAGS) $^ -o $@
 
-tests: $(TEST_TARGETS)
-
 tests/test_insertion: tests/insertion/test.o src/operations.o src/hashtable.o src/spec.o $(HDR)
 	$(CC) $(CFLAGS) $^ -o $@
 
+tests: $(TEST_TARGETS)
+
+check: tests
+	@cd tests; \
+	for bin in ${TEST_TARGETS}; do \
+		run="./$$(basename $$bin)" ; \
+		echo "[Running $$run]"; \
+		"./$$run"; \
+	done; \
+	cd ..
+
 # The all-important clean target
-.PHONY: clean
 clean:
 	$(RM) $(SRC_OBJ) $(TARGET) $(TEST_OBJ) $(TEST_TARGETS)
+
+.PHONY: tests check clean
