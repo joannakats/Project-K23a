@@ -99,7 +99,10 @@ int compare_json(char *json_filename, char *tmp_filename) {
 	/* Line-by-line comparison */
 	while (fgets(line, LINE_SIZE, json)) {
 		TEST_CHECK(fgets(tmp_line, LINE_SIZE, tmp_json) != NULL);
+		TEST_MSG("Unexpected EOF in tmp_json!");
+
 		TEST_CHECK(!strcmp(line, tmp_line));
+		TEST_MSG("Expected: %s\nGot: %s", line, tmp_line);
 	}
 
 	free(line);
