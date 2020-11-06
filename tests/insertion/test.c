@@ -9,7 +9,6 @@
  * property fields. ("": "value")
  */
 
-#include <assert.h>
 #include <dirent.h>
 #include <libgen.h>
 #include <stdio.h>
@@ -17,6 +16,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "acutest.h"
 #include "common.h"
 #include "hashtable.h"
 #include "operations.h"
@@ -98,8 +98,8 @@ int compare_json(char *json_filename, char *tmp_filename) {
 
 	/* Line-by-line comparison */
 	while (fgets(line, LINE_SIZE, json)) {
-		assert(fgets(tmp_line, LINE_SIZE, tmp_json));
-		assert(!strcmp(line, tmp_line));
+		TEST_CHECK(fgets(tmp_line, LINE_SIZE, tmp_json) != NULL);
+		TEST_CHECK(!strcmp(line, tmp_line));
 	}
 
 	free(line);
@@ -110,7 +110,7 @@ int compare_json(char *json_filename, char *tmp_filename) {
 	return 0;
 }
 
-int main() {
+void test_insertion(void) {
 	hashtable hash_table = hashtable_init(5);
 	node* spec;
 	char *dataset_x = "insertion/dataset_x";
@@ -119,7 +119,7 @@ int main() {
 
 	printf("Dataset X at: %s\n", dataset_x);
 
-	insert_specs(&hash_table, dataset_x);
+	TEST_CHECK(insert_specs(&hash_table, dataset_x) == 0);
 
 	/* For every spec in the hash_table, check against the original JSON */
 	for (int i = 0; i < hash_table.tableSize ; ++i) {
@@ -139,7 +139,10 @@ int main() {
 		}
 	}
 
-	puts("All tests passed!");
-
 	delete_hashtable(&hash_table);
 }
+
+TEST_LIST = {
+	{"insertion", test_insertion},
+	{NULL, NULL}
+};
