@@ -28,9 +28,9 @@ tests/test_insertion: tests/insertion/test.o src/operations.o src/hashtable.o sr
 tests: $(TEST_TARGETS)
 
 check: tests
-	@cd tests; \
+	@cd tests && \
 	for bin in ${TEST_TARGETS}; do \
-		run="./$$(basename $$bin)" ; \
+		run="$$(basename $$bin)" ; \
 		echo "[Running $$run]"; \
 		"./$$run"; \
 	done; \
