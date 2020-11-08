@@ -138,6 +138,8 @@ void test_search_spec(void) {
     TEST_CHECK(strcmp(tmp->id, id) == 0);
     TEST_CHECK(pos == i);
   }
+
+  delete_specList(head);
 }
 
 TEST_LIST = {
