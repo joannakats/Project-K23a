@@ -113,10 +113,10 @@ int compare_json(char *json_filename, char *tmp_filename) {
 	return 0;
 }
 
-void test_insertion(void) {
+void test_json_insertion(void) {
 	hashtable hash_table = hashtable_init(5);
 	node* spec;
-	char *dataset_x = "insertion/dataset_x";
+	char *dataset_x = "json_insertion/dataset_x";
 
 	char json_filename[1024], *tmp_filename;
 
@@ -146,6 +146,6 @@ void test_insertion(void) {
 }
 
 TEST_LIST = {
-	{"insertion", test_insertion},
+	{"json_insertion", test_json_insertion},
 	{NULL, NULL}
 };

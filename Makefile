@@ -6,7 +6,7 @@ SRC_OBJ = $(patsubst %.c,%.o,$(wildcard src/*.c))
 TARGET = specs
 
 TEST_OBJ = $(patsubst %.c,%.o,$(wildcard tests/*/*.c))
-TEST_TARGETS = tests/test_insertion tests/test_spec
+TEST_TARGETS = tests/test_json_insertion tests/test_spec
 
 TARGETS = $(TARGET) $(TEST_TARGETS)
 
@@ -23,7 +23,7 @@ $(TARGETS):
 
 # Specific dependencies for executables (object files + $(HDR))
 $(TARGET): $(SRC_OBJ) $(HDR)
-tests/test_insertion: tests/insertion/test.o src/operations.o src/hashtable.o src/spec.o $(HDR)
+tests/test_json_insertion: tests/json_insertion/test.o src/operations.o src/hashtable.o src/spec.o $(HDR)
 tests/test_spec: tests/spec/test.o src/spec.o $(HDR)
 
 tests: $(TEST_TARGETS)
