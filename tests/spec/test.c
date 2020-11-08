@@ -110,7 +110,7 @@ void test_search_spec(void) {
   char id[3];
 
   //create and initialize a field array
-  field *arr = createFieldArray(2);;
+  field *arr = createFieldArray(2);
   for (int i=0; i<2; i++) {
     setField(&arr[i], 2, prop);
     for (int j=0; j<2; j++) {
@@ -139,7 +139,22 @@ void test_search_spec(void) {
     TEST_CHECK(pos == i);
   }
 
-  delete_specList(head);
+  //free memory allocated for this test
+  //free field array
+  for(int i=0; i<2; i++) {
+    deleteField(arr[i]);
+  }
+  node *cur = head;
+	while(cur != NULL) {
+		tmp = cur;
+		cur = cur->next;
+    if (tmp->hasListOfClique) { //make sure we don't free something we have already freed
+  		delete_clique(tmp->clique);
+  	}
+
+  	free(tmp->id);
+  	free(tmp);
+	}
 }
 
 TEST_LIST = {
