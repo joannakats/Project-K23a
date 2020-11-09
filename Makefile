@@ -1,4 +1,12 @@
-CFLAGS = -Wall -Wextra -pedantic -Iinclude -g3
+CFLAGS = -Wall -Wextra -pedantic -Iinclude
+
+# Run make DEBUG=1 for debug build
+DEBUG ?= 0
+ifeq ($(DEBUG), 1)
+	CFLAGS += -g3 -DDEBUG
+else
+	CFLAGS += -O3 -DNDEBUG
+endif
 
 HDR = $(wildcard include/*.h)
 
@@ -10,24 +18,24 @@ TEST_TARGETS = tests/test_json_insertion tests/test_spec
 
 TARGETS = $(TARGET) $(TEST_TARGETS)
 
-# Default goal
+# Compilation
 all: $(TARGETS)
+tests: $(TEST_TARGETS)
 
-# Object files
-%.o: %.c $(HDR)
-	$(CC) $(CFLAGS) -o $@ -c $<
-
-# Compilation recipe for executables (common)
+## Compilation recipe for executables (common)
 $(TARGETS):
 	$(CC) $(CFLAGS) -o $@ $^
 
-# Specific dependencies for executables (object files + $(HDR))
+## Specific dependencies for executables (object files + $(HDR))
 $(TARGET): $(SRC_OBJ) $(HDR)
 tests/test_json_insertion: tests/json_insertion/test.o src/operations.o src/hashtable.o src/spec.o $(HDR)
 tests/test_spec: tests/spec/test.o src/spec.o $(HDR)
 
-tests: $(TEST_TARGETS)
+## Object files
+%.o: %.c $(HDR)
+	$(CC) $(CFLAGS) -o $@ -c $<
 
+# Run tests
 check: tests
 	@cd tests && \
 	for bin in ${TEST_TARGETS}; do \
