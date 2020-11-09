@@ -133,7 +133,9 @@ void delete_specNode(node *spec) {
 	for (int i = 0; i < spec->fieldCount; i++) {
 		deleteField(spec->fields[i]);
 	}
-	free(spec->fields);
+	if(spec->fields != NULL) {
+		free(spec->fields);
+	}
 
 	if (spec->hasListOfClique) { //make sure we don't free something we have already freed
 		delete_clique(spec->clique);
@@ -196,16 +198,4 @@ void clique_rearrange(node *spec1, node *spec2) {
 		temp->spec->clique = spec1->clique;
 		temp->spec->hasListOfClique = false;
 	}
-}
-
-/* searches in a list of clique nodes for the node spec that "keeps" this list */
-node *search_HostSpec(cliqueNode *head) {
-	cliqueNode *cur = head;
-	while(cur != NULL) {
-		if (cur->spec->hasListOfClique == true) {
-			return cur->spec;
-		}
-		cur = cur->next;
-	}
-	return NULL; // something is wrong
 }

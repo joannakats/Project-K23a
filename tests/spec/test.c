@@ -144,6 +144,7 @@ void test_search_spec(void) {
 	for(int i=0; i<2; i++) {
 		deleteField(arr[i]);
 	}
+	free(arr);
 	node *cur = head;
 	while(cur != NULL) {
 		tmp = cur;
@@ -157,8 +158,50 @@ void test_search_spec(void) {
 	}
 }
 
+void test_clique_rearrange(void) {
+	node *head = NULL;
+	node *spec1, *spec2;
+	cliqueNode *hc, *s1c, *s2c;
+
+	//make a list of three specs
+	head = spec_insert(head, "1", NULL, 0);
+	spec1 = spec_insert(head, "2", NULL, 0);
+	spec2 = spec_insert(head, "3", NULL, 0);
+
+	//assign spec1's clique to head's clique
+	clique_rearrange(head, spec1);
+	hc = head->clique;
+	s1c = spec1->clique;
+	//check pointers of clique list (composed of only 2 clique nodes)
+	TEST_CHECK(hc->next->spec == spec1);
+	TEST_CHECK(spec1->clique == hc);
+	//check boolean
+	TEST_CHECK(head->hasListOfClique == true);
+	TEST_CHECK(spec1->hasListOfClique == false);
+
+	//assign spec1's clique to spec2's clique
+	clique_rearrange(spec2, spec1);
+	hc = head->clique;
+	s1c = spec1->clique;
+	s2c = spec2->clique;
+	//check if head, spec1 and spec2 point to the same clique list
+	TEST_CHECK(hc == s1c && s1c == s2c);
+	//check boolean variable for every spec
+	TEST_CHECK(head->hasListOfClique == false);
+	TEST_CHECK(spec1->hasListOfClique == false);
+	TEST_CHECK(spec2->hasListOfClique == true);
+	//check pointers of clique list (composed of 3 clique nodes)
+	TEST_CHECK(s2c->spec == spec2);
+	TEST_CHECK(s2c->next->spec == head);
+	TEST_CHECK(s2c->next->next->spec == spec1);
+
+	//free memory allocated for this test
+	delete_specList(head);
+}
+
 TEST_LIST = {
 	{"spec_insertion", test_spec_insert},
 	{"spec_search", test_search_spec},
+	{"clique_rearrange", test_clique_rearrange},
 	{NULL, NULL}
 };
