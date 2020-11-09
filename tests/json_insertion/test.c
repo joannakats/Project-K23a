@@ -75,6 +75,7 @@ char *make_json(node *spec) {
 int compare_json(char *json_filename, char *tmp_filename) {
 	FILE *json, *tmp_json;
 	char *line, *tmp_line;
+	unsigned long line_n = 0;
 
 	if (!(line = malloc(LINE_SIZE))) {
 		perror("line");
@@ -98,11 +99,13 @@ int compare_json(char *json_filename, char *tmp_filename) {
 
 	/* Line-by-line comparison */
 	while (fgets(line, LINE_SIZE, json)) {
+		line_n++;
+
 		TEST_CHECK(fgets(tmp_line, LINE_SIZE, tmp_json) != NULL);
-		TEST_MSG("Unexpected EOF in tmp_json!");
+		TEST_MSG("%s:%lu:\nUnexpected EOF in tmp_json", json_filename, line_n);
 
 		TEST_CHECK(!strcmp(line, tmp_line));
-		TEST_MSG("Expected: %s\nGot: %s", line, tmp_line);
+		TEST_MSG("%s:%lu:\nExpected: '%s'\nGot: '%s'", json_filename, line_n, line, tmp_line);
 	}
 
 	free(line);
@@ -117,6 +120,7 @@ void test_json_insertion(void) {
 	hashtable hash_table = hashtable_init(5);
 	node* spec;
 	char *dataset_x = "json_insertion/dataset_x";
+	//"../../Datasets/2013_camera_specs"
 
 	char json_filename[1024], *tmp_filename;
 
