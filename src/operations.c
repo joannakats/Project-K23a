@@ -8,35 +8,38 @@
 #include "operations.h"
 
 int parse_json_field(FILE *json, char *line, field *current_field) {
-	char *property, *value, *saveptr = NULL;
+	char *property, *value, *temp = NULL;
 
-	/* Parse field line */
-	strtok_r(line, "\"", &saveptr);    /* 1. Whitespace before "property" */
+	if (!line)
+		return -1;
 
-	/* 2. Property
-	 * Quirk: If the property field is empty (""), such as in
-	 * www.camerafarm.com.au/758.json, we can detect that because saveptr
-	 * will start from the closing quote of the empty property field */
-	if (saveptr[0] == '"')
-		property = "";
-	else
-		property = strtok_r(NULL, "\"", &saveptr);
+	/* Find opening quote of property string */
+	if (!(temp = strchr(line, '"'))) {
+		fprintf(stderr, "No property field on line: '%s'\n", line);
+		return -1;
+	}
 
-	strtok_r(NULL, "\"", &saveptr);                            /* 3. ": " */
+	property = temp + 1;
 
-	/* At this point if saveptr still points to remaining data, there exists
-	 * a single quoted string value. Otherwise the remainder of the line was
-	 * a starting bracket for a JSON array and saveptr will be empty, after
-	 * exhausting the search for the quotes around "value" */
+	/* Find closing quote of property string */
+	if (!(temp = strstr(property, "\":"))) {
+		fprintf(stderr, "No property field on line: '%s'\n", line);
+		return -1;
+	}
+
+	temp[0] = '\0'; /* Cut property at the closing quote */
 
 	/* Set current field property and value count, initially = 1 */
 	setField(current_field, 1, property);
 
-	if (saveptr[0]) {
-		/* Single quoted "value" string
-		 * e.g. "battery": "Li-ion" */
-		*strrchr(saveptr, '"') = '\0';
-		value = saveptr;                                  /* 4. Value */
+	/* If we find a quote after the colon, this is a case of "string value"
+	 * (e.g. "battery": "Li-ion") */
+	if ((temp = strchr(temp + 1, '"'))) {
+		/* Move over 1 position to be just ahead of the first quote */
+		value = temp + 1;
+
+		/* Cut value at the closing quote */
+		*strrchr(value, '"') = '\0';
 
 		setValue(current_field, 0, value);
 	} else {
@@ -49,17 +52,16 @@ int parse_json_field(FILE *json, char *line, field *current_field) {
 		/* Set to zero, incremented to 1 in the loop */
 		current_field->cnt = 0;
 		while (fgets(line, LINE_SIZE, json)) {
-			/* Similar strategy to single string value:
-			 * 1. Whitespace before "array member" */
-			strtok_r(line, "\"", &saveptr);
+			/* Find opening quote of array member string */
+			strtok_r(line, "\"", &value);
 
 			/* A line with a single bracket ] denotes the end of the array.
-			 * saveptr will be an empty string because no quote was found */
-			if (!saveptr[0])
+			 * value will be an empty string because no quote was found */
+			if (!value[0])
 				break;
 
-			*strrchr(saveptr, '"') = '\0';
-			value = saveptr;                   /* 2. Array member */
+			/* Find closing quote of array member string */
+			*strrchr(value, '"') = '\0';
 
 			current_field->cnt++;
 			current_field->values = realloc(current_field->values, current_field->cnt * sizeof(current_field->values[0]));
