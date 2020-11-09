@@ -1,6 +1,9 @@
 # Files being edited
 *~
 
+# IDE
+.vscode/
+
 # make and build files
 *.lst
 *.o
@@ -8,12 +11,12 @@
 *.lss
 *.map
 *.sym
-.vscode/
 
 # Executables
-specs
-tests/test_*
 *.exe
+specs
+tests/test_json_insertion
+tests/test_spec
 
 # Valgrind
 vgcore.*
