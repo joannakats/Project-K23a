@@ -16,7 +16,6 @@ TARGET = specs
 TEST_OBJ = $(patsubst %.c,%.o,$(wildcard tests/*/*.c))
 TEST_TARGETS = tests/test_json_insertion tests/test_spec tests/test_hstable
 
-
 TARGETS = $(TARGET) $(TEST_TARGETS)
 
 # Compilation
