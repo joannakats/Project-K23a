@@ -4,7 +4,6 @@
 #include "hashtable.h"
 #include "spec.h"
 
-//needs testing and to add insert_entry
 hashtable hashtable_init(int size){
 	hashtable hsTable;
 	hsTable.tableSize=size;
