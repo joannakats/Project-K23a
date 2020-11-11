@@ -10,8 +10,8 @@ hashtable hashtable_init(int size){
 	hsTable.list= malloc(size*sizeof(node*));
 	for(int i=0;i<size;i++){
 		hsTable.list[i]=NULL;
-    }
-    return hsTable;
+		}
+		return hsTable;
 }
 
 unsigned  long  hash(const char* key,int tableSize){
@@ -28,9 +28,7 @@ unsigned  long  hash(const char* key,int tableSize){
 
 void insert_entry(hashtable* hsTable,char* id,field *fieldsArray,int numOfFields) {
 	int index = hash(id, hsTable->tableSize);
-	node *temp = spec_insert(hsTable->list[index],id,fieldsArray,numOfFields);
-	if(hsTable->list[index]==NULL)
-		hsTable->list[index] = temp;
+	hsTable->list[index] = spec_insert(hsTable->list[index],id,fieldsArray,numOfFields);
 }
 
 node *search_hashTable_spec(hashtable* hsTable,char* id,int *pos){

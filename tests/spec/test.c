@@ -57,12 +57,14 @@ void test_spec_insert(void) {
 	TEST_CHECK(arr2[1].values[0] != NULL && strcmp(arr2[1].values[0], val) == 0);
 
 	node *spec2 = spec_insert(head, id, arr2, 2);
+	head = spec2;
 	//test spec_init
 	TEST_CHECK(spec2 != NULL);
 	TEST_CHECK(spec2->id != NULL && strcmp(spec2->id, id) == 0);
 	TEST_CHECK(arr2 == spec2->fields);
 	TEST_CHECK(spec2->hasListOfClique == 1);
-	TEST_CHECK(spec2->next == NULL);
+	TEST_CHECK(spec2->next == spec1);
+	TEST_CHECK(spec1->next == NULL);
 	TEST_CHECK(spec2->fieldCount == 2);
 	//see if clique_init() works as supposed to
 	TEST_CHECK(spec2->clique != NULL);
@@ -85,12 +87,12 @@ void test_spec_insert(void) {
 	}
 
 	node *spec3 = spec_insert(head, id, arr3, 2);
+	head = spec3;
 	//test spec_init
 	TEST_CHECK(spec3 != NULL);
 	TEST_CHECK(spec3->id != NULL && strcmp(spec3->id, id) == 0);
 	TEST_CHECK(arr3 == spec3->fields);
 	TEST_CHECK(spec3->hasListOfClique == 1);
-	TEST_CHECK(spec3->next == NULL);
 	TEST_CHECK(spec3->fieldCount == 2);
 	//see if clique_init() works as supposed to
 	TEST_CHECK(spec3->clique != NULL);
@@ -98,8 +100,9 @@ void test_spec_insert(void) {
 	TEST_CHECK(spec3->clique->next == NULL);
 
 	//check spec_insert
-	TEST_CHECK(spec1->next == spec2);
-	TEST_CHECK(spec2->next == spec3);
+	TEST_CHECK(spec3->next == spec2);
+	TEST_CHECK(spec2->next == spec1);
+	TEST_CHECK(spec1->next == NULL);
 
 	delete_specList(head);
 }
@@ -124,19 +127,19 @@ void test_search_spec(void) {
 	for (int i=1; i<10; i++) {
 		sprintf(id, "%d", i);
 		tmp = spec_insert(head, id, arr, 2);
-		if (i==1) {
-			head = tmp;
-		}
+		head = tmp;
 	}
 
 	//testing search
 	int pos;
-	for(int i=1; i<10; i++) {
+	int cnt = 1;
+	for(int i=9; i>0; i--) {
 		sprintf(id, "%d", i);
 		tmp = search_spec(head, id, &pos);
 		TEST_CHECK(tmp != NULL);
 		TEST_CHECK(strcmp(tmp->id, id) == 0);
-		TEST_CHECK(pos == i);
+		TEST_CHECK(pos == cnt);
+		cnt++;
 	}
 
 	//free memory allocated for this test
@@ -159,44 +162,45 @@ void test_search_spec(void) {
 }
 
 void test_clique_rearrange(void) {
-	node *head = NULL;
-	node *spec1, *spec2;
+	node *spec1, *spec2, *spec3;
 	cliqueNode *hc, *s1c, *s2c;
 
 	//make a list of three specs
-	head = spec_insert(head, "1", NULL, 0);
-	spec1 = spec_insert(head, "2", NULL, 0);
-	spec2 = spec_insert(head, "3", NULL, 0);
+	spec1 = spec_insert(NULL, "1", NULL, 0);
+	spec2 = spec_insert(spec1, "2", NULL, 0);
+	spec3 = spec_insert(spec2, "3", NULL, 0);
 
-	//assign spec1's clique to head's clique
-	clique_rearrange(head, spec1);
-	hc = head->clique;
-	s1c = spec1->clique;
+
+	//assign spec2's clique to head's clique
+	clique_rearrange(spec3, spec2);
+	hc = spec3->clique;
+	s2c = spec2->clique;
 	//check pointers of clique list (composed of only 2 clique nodes)
-	TEST_CHECK(hc->next->spec == spec1);
-	TEST_CHECK(spec1->clique == hc);
+	TEST_CHECK(hc->next->spec == spec2);
+	TEST_CHECK(s2c == hc);
 	//check boolean
-	TEST_CHECK(head->hasListOfClique == true);
-	TEST_CHECK(spec1->hasListOfClique == false);
+	TEST_CHECK(spec3->hasListOfClique == true);
+	TEST_CHECK(spec2->hasListOfClique == false);
+	TEST_CHECK(spec1->hasListOfClique == true);
 
-	//assign spec1's clique to spec2's clique
-	clique_rearrange(spec2, spec1);
-	hc = head->clique;
+	//assign spec2's clique to the tail's clique
+	clique_rearrange(spec1, spec2);
+	hc = spec3->clique;
 	s1c = spec1->clique;
 	s2c = spec2->clique;
 	//check if head, spec1 and spec2 point to the same clique list
 	TEST_CHECK(hc == s1c && s1c == s2c);
 	//check boolean variable for every spec
-	TEST_CHECK(head->hasListOfClique == false);
-	TEST_CHECK(spec1->hasListOfClique == false);
-	TEST_CHECK(spec2->hasListOfClique == true);
+	TEST_CHECK(spec3->hasListOfClique == false);
+	TEST_CHECK(spec2->hasListOfClique == false);
+	TEST_CHECK(spec1->hasListOfClique == true);
 	//check pointers of clique list (composed of 3 clique nodes)
-	TEST_CHECK(s2c->spec == spec2);
-	TEST_CHECK(s2c->next->spec == head);
-	TEST_CHECK(s2c->next->next->spec == spec1);
+	TEST_CHECK(s1c->spec == spec1);
+	TEST_CHECK(s1c->next->spec == spec3);
+	TEST_CHECK(s1c->next->next->spec == spec2);
 
 	//free memory allocated for this test
-	delete_specList(head);
+	delete_specList(spec3);
 }
 
 TEST_LIST = {

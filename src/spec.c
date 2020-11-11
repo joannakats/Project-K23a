@@ -93,24 +93,8 @@ cliqueNode *clique_init(node *spec) {
 node *spec_insert(node *head, char *id, field *fieldsArray, int numOfFields) {
 	node *new_node = spec_init(id, fieldsArray, numOfFields);  //create the new node of spec
 
-	/* if the list is empty */
-	if (head == NULL) {
-		return new_node;
-	}
+	new_node->next = head;	// new node will be inserted at the top of the list
 
-	/* if there is only one element */
-	if (head->next == NULL) {
-		head->next = new_node;
-		return new_node;
-	}
-
-	/* traverse the list  */
-	node *cur = head->next;
-	while(cur->next != NULL) {
-		cur = cur->next;
-	}
-	/*add at the end of the list*/
-	cur->next = new_node;
 	return new_node;
 }
 
