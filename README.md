@@ -1,5 +1,5 @@
 # Project-K23a
-![C/C++ CI](https://github.com/joannakats/Project-K23a/workflows/C/C++%20CI/badge.svg)
+![Build status](https://github.com/joannakats/Project-K23a/workflows/build/badge.svg)
 
 ## Team Members
 Katsouli Ioanna (1115201400067)<br/>
