@@ -21,21 +21,20 @@
 #include "hashtable.h"
 #include "operations.h"
 
-char *make_json(node *spec) {
-	char *tmp_filename;
+int make_tmp_json(node *spec, char *tmp_template) {
 	int fd;
 	FILE *tmp_json;
 
-	tmp_filename = strdup("/tmp/spec.XXXXXX");
-
-	if ((fd = mkstemp(tmp_filename)) == -1) {
-		perror("tmp_json");
-		return NULL;
+	fd = mkstemp(tmp_template);
+	if (!TEST_CHECK(fd != -1)) {
+		TEST_MSG("mkstemp: %s", strerror(errno));
+		return errno;
 	}
 
-	if (!(tmp_json = fdopen(fd, "w"))) {
-		perror(tmp_filename);
-		return NULL;
+	tmp_json = fdopen(fd, "w");
+	if (!TEST_CHECK(tmp_json != NULL)) {
+		TEST_MSG("tmp_json: %s", strerror(errno));
+		return errno;
 	}
 
 	/* Write spec, formatted as JSON */
@@ -68,8 +67,7 @@ char *make_json(node *spec) {
 	fputc('}', tmp_json);
 
 	fclose(tmp_json);
-
-	return tmp_filename;
+	return 0;
 }
 
 int compare_json(char *json_filename, char *tmp_filename) {
@@ -77,23 +75,27 @@ int compare_json(char *json_filename, char *tmp_filename) {
 	char *line, *tmp_line;
 	unsigned long line_n = 0;
 
-	if (!(line = malloc(LINE_SIZE))) {
-		perror("line");
+	line = malloc(LINE_SIZE);
+	if (!TEST_CHECK(line != NULL)) {
+		TEST_MSG("line: %s", strerror(errno));
 		return errno;
 	}
 
-	if (!(tmp_line = malloc(LINE_SIZE))) {
-		perror("tmp_line");
+	tmp_line = malloc(LINE_SIZE);
+	if (!TEST_CHECK(tmp_line != NULL)) {
+		TEST_MSG("tmp_line: %s", strerror(errno));
 		return errno;
 	}
 
-	if (!(json = fopen(json_filename, "r"))) {
-		perror(json_filename);
+	json = fopen(json_filename, "r");
+	if (!TEST_CHECK(json != NULL)) {
+		TEST_MSG("%s: %s", json_filename, strerror(errno));
 		return errno;
 	}
 
-	if (!(tmp_json = fopen(tmp_filename, "r"))) {
-		perror(tmp_filename);
+	tmp_json = fopen(tmp_filename, "r");
+	if (!TEST_CHECK(tmp_json != NULL)) {
+		TEST_MSG("%s: %s", tmp_filename, strerror(errno));
 		return errno;
 	}
 
@@ -110,6 +112,7 @@ int compare_json(char *json_filename, char *tmp_filename) {
 
 	free(line);
 	free(tmp_line);
+
 	fclose(json);
 	fclose(tmp_json);
 
@@ -120,27 +123,32 @@ void test_json_insertion(void) {
 	hashtable hash_table = hashtable_init(5);
 	node* spec;
 	char *dataset_x = "json_insertion/dataset_x";
-	//"../../Datasets/2013_camera_specs"
+	//char *dataset_x = "../../Datasets/2013_camera_specs";
 
-	char json_filename[1024], *tmp_filename;
+	char json_filename[1024];
+	char tmp_template[] = "/tmp/spec.XXXXXX";
+
+	TEST_ASSERT(tmp_template != NULL);
+	TEST_MSG("tmp_template: %s", strerror(errno));
 
 	printf("Dataset X at: %s\n", dataset_x);
 
-	TEST_CHECK(insert_specs(&hash_table, dataset_x) == 0);
+	TEST_CHECK(!insert_specs(&hash_table, dataset_x));
 
 	/* For every spec in the hash_table, check against the original JSON */
-	for (int i = 0; i < hash_table.tableSize ; ++i) {
+	for (int i = 0; i < hash_table.tableSize; ++i) {
 		spec = hash_table.list[i];
 
 		while (spec) {
 			sprintf(json_filename, "%s/%s.json", dataset_x, spec->id);
-			tmp_filename = make_json(spec);
+			strcpy(tmp_template + 10, "XXXXXX");
 
-			printf("Comparing %s\n", spec->id);
-			compare_json(json_filename, tmp_filename);
+			if (!make_tmp_json(spec, tmp_template)) {
+				printf("Comparing %s\n", spec->id);
+				compare_json(json_filename, tmp_template);
 
-			unlink(tmp_filename);
-			free(tmp_filename);
+				unlink(tmp_template);
+			}
 
 			spec = spec->next;
 		}
