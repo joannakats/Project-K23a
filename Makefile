@@ -3,9 +3,21 @@ CFLAGS = -Wall -Wextra -pedantic -Iinclude
 # Run make DEBUG=1 for debug build
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
+	# Force rebuild if previous compilation was 'release'
+	ifeq (,$(wildcard .debug))
+		MAKEFLAGS += -B
+	endif
+
 	CFLAGS += -g3 -DDEBUG
+	flag_debug := $(shell touch .debug)
 else
+	# Force rebuild if previous compilation was 'debug'
+	ifneq (,$(wildcard .debug))
+		MAKEFLAGS += -B
+	endif
+
 	CFLAGS += -O3 -DNDEBUG
+	flag_release := $(shell rm -f .debug)
 endif
 
 HDR = $(wildcard include/*.h)
