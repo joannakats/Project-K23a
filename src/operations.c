@@ -14,32 +14,34 @@ int parse_json_field(FILE *json, char *line, field *current_field) {
 		return -1;
 
 	/* Find opening quote of property string */
-	if (!(temp = strchr(line, '"'))) {
-		fprintf(stderr, "No property field on line: '%s'\n", line);
+	strtok_r(line, "\"", &property);
+	if (!property[0]) {
+		fputs("No property field found", stderr);
 		return -1;
 	}
-
-	property = temp + 1;
 
 	/* Find closing quote of property string */
 	if (!(temp = strstr(property, "\":"))) {
-		fprintf(stderr, "No property field on line: '%s'\n", line);
+		fputs("Incomplete property field", stderr);
 		return -1;
 	}
-
-	temp[0] = '\0'; /* Cut property at the closing quote */
+	temp[0] = '\0';                  /* Cut property at the closing quote */
 
 	/* Set current field property and value count, initially = 1 */
 	setField(current_field, 1, property);
 
+	/* Find opening quote of value string */
+	strtok_r(temp + 1, "\"", &value);
+
 	/* If we find a quote after the colon, this is a case of "string value"
 	 * (e.g. "battery": "Li-ion") */
-	if ((temp = strchr(temp + 1, '"'))) {
-		/* Move over 1 position to be just ahead of the first quote */
-		value = temp + 1;
-
-		/* Cut value at the closing quote */
-		*strrchr(value, '"') = '\0';
+	if (value[0]) {
+		/* Find closing quote of property string */
+		if (!(temp = strrchr(value, '"'))) {
+			fputs("Incomplete value field", stderr);
+			value = "";
+		}
+		temp[0] = '\0';             /* Cut value at the closing quote */
 
 		setValue(current_field, 0, value);
 	} else {
@@ -61,7 +63,11 @@ int parse_json_field(FILE *json, char *line, field *current_field) {
 				break;
 
 			/* Find closing quote of array member string */
-			*strrchr(value, '"') = '\0';
+			if (!(temp = strrchr(value, '"'))) {
+				fputs("Incomplete value field", stderr);
+				value = "";
+			}
+			temp[0] = '\0';     /* Cut value at the closing quote */
 
 			current_field->cnt++;
 			current_field->values = realloc(current_field->values, current_field->cnt * sizeof(current_field->values[0]));
@@ -76,6 +82,7 @@ int parse_json_field(FILE *json, char *line, field *current_field) {
 int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) {
 	FILE *json;
 	char *line;
+	int error = 0;
 
 	field *current_field;
 
@@ -97,17 +104,21 @@ int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) 
 		if (line[0] == '{' || line[0] == '}')
 			continue;
 
-		/* New field entry, resize arrays */
-		(*spec_field_count)++;
-		*spec_fields = realloc(*spec_fields, *spec_field_count * sizeof(**spec_fields));
+		/* Only add new field if previous was filled */
+		if (!error) {
+			/* New field entry, resize arrays */
+			(*spec_field_count)++;
+			*spec_fields = realloc(*spec_fields, *spec_field_count * sizeof(**spec_fields));
 
-		if (!*spec_fields) {
-			perror("spec_fields");
-			return errno;
+			if (!*spec_fields) {
+				perror("spec_fields");
+				return errno;
+			}
+
+			current_field = &(*spec_fields)[*spec_field_count - 1];
 		}
 
-		current_field = &(*spec_fields)[*spec_field_count - 1];
-		parse_json_field(json, line, current_field);
+		error = parse_json_field(json, line, current_field);
 	}
 
 	fclose(json);
