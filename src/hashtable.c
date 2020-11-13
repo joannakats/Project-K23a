@@ -38,12 +38,13 @@ node *search_hashTable_spec(hashtable* hsTable,char* id,int *pos){
 }
 
 
-
+/*The following function search for left and right spec.If both specs are found 
+left spec will point to its list of clique nodes and right spec
+will point to left_spec's list of clique nodes */
 void hash_table_join(hashtable* hsTable,char* left_id,char* right_id){
 	int left_pos,right_pos;
 	node *left_spec=search_hashTable_spec(hsTable,left_id,&left_pos);
 	node *right_spec=search_hashTable_spec(hsTable,right_id,&right_pos);
-	//both spec_ids where found
 	if(left_pos!=-1 && right_pos!=-1)
 				clique_rearrange(left_spec,right_spec);
 
@@ -85,7 +86,8 @@ void print_hashTable(const hashtable *hsTable){
 		}
 	}
 }
-
+/* Τhe following function prints the first node of the clique with the following nodes,
+the second with its next ones and so on for every clique list. */
 void print_pairs(const hashtable *hsTable){
 	if(hsTable!=NULL){
 		node* current;

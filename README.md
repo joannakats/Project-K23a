@@ -10,6 +10,9 @@ Leonidas-Panagiotis Papadakos (1115201700117)<br/>
 *A picture is worth a thousand words.*
 ![Structures diagram](./structs.svg)
 
+Hashtable is used, as it helps to form smaller lists and makes the search procedure faster.<br>Faster, because it has average time complexity O(1) for search, insertion and deletion<br/> (and worst time complexity O(n)).<br/>
+Single-linked lists has O(1) for insertion and deletion and O(n) for search procedure.
+
 ## Build
 Run `make`, to build the executables and unit tests<br/>
 To run the testing executables, (found in tests/), run `make check`.
