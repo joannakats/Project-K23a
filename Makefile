@@ -50,13 +50,7 @@ tests/test_hstable: tests/hashtable/test.o src/hashtable.o src/spec.o  $(HDR)
 
 # Run tests
 check: tests
-	@cd tests && \
-	for bin in ${TEST_TARGETS}; do \
-		run="$$(basename $$bin)" ; \
-		echo "[Running $$run]"; \
-		"./$$run"; \
-	done; \
-	cd ..
+	cd tests && $(foreach bin,$(notdir $(TEST_TARGETS)),./$(bin);)
 
 # The all-important clean target
 clean:
