@@ -1,4 +1,5 @@
-CFLAGS = -Wall -Wextra -pedantic -Iinclude
+CFLAGS = -Wall -Wextra -pedantic -I /usr/local/include -I/usr/include/tensorflow -Iinclude
+LIBS = -ltensorflow
 
 # Run make DEBUG=1 for debug build
 DEBUG ?= 0
@@ -36,17 +37,17 @@ tests: $(TEST_TARGETS)
 
 ## Compilation recipe for executables (common)
 $(TARGETS):
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
 ## Specific dependencies for executables (object files + $(HDR))
 $(TARGET): $(SRC_OBJ) $(HDR)
 tests/test_json_insertion: tests/json_insertion/test.o src/operations.o src/hashtable.o src/spec.o $(HDR)
 tests/test_spec: tests/spec/test.o src/spec.o $(HDR)
-tests/test_hstable: tests/hashtable/test.o src/hashtable.o src/spec.o  $(HDR)
+tests/test_hstable: tests/hashtable/test.o src/hashtable.o src/spec.o $(HDR)
 
 ## Object files
 %.o: %.c $(HDR)
-	$(CC) $(CFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) -o $@ -c $< $(LIBS)
 
 # Run tests
 check: tests
