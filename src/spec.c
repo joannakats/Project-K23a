@@ -312,7 +312,7 @@ anti_clique *anti_clique_init(clique *c) {
 char **getValues(node *spec, char *property) {
 	int index = hash(property, spec->fieldCount);
 
-	if (!strcmp(property, spec->fields[index].property)
+	if (!strcmp(property, spec->fields[index].property))
 		return spec->fields[index].values;
 
 	return NULL;
