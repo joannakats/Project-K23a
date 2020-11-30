@@ -9,10 +9,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up libtensorflow
-      run: |
-        curl "https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.3.1.tar.gz" | sudo tar -C /usr/local -xz
-        sudo ldconfig
     - name: Compile (make)
       run: make
     - name: Run unit tests (make check)
