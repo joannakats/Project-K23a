@@ -5,7 +5,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <tensorflow/c/c_api.h>
 #include <unistd.h>
 
 #include "common.h"
@@ -94,9 +93,6 @@ int main(int argc, char *argv[]) {
 	/* args: returned from parsing function get_opts */
 	int entries;
 	char *output, *dataset_x, *dataset_w;
-
-	/* Test TensorFlow library configuration */
-	printf("Hello from TensorFlow C library version %s\n", TF_Version());
 
 	if (!(ret = get_opts(argc, argv, &entries, &output, &dataset_x, &dataset_w)))
 		ret = begin_operations(entries, output, dataset_x, dataset_w);
