@@ -182,33 +182,62 @@ int insert_specs(hashtable *hash_table, char *dataset_x) {
 	return 0;
 }
 
-/* Reading Dataset W */
-int join_specs(hashtable *hash_table, char *dataset_w) {
-	FILE *csv;
-
+/* Create Training Set */
+int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
+	long line_n;
 	char line[512];
 	char *left_spec, *right_spec, *label, *saveptr;
+
+	/* Skip first line (left, right, label) */
+	fgets(line, sizeof(line), csv);
+	for (line_n = 1; line_n <= training_n; line_n++) {
+		fgets(line, sizeof(line), csv);
+
+		left_spec = strtok_r(line, ",", &saveptr);
+		right_spec = strtok_r(NULL, ",", &saveptr);
+		label = strtok_r(NULL, ",", &saveptr);
+
+		if (label[0] == '1')
+			hash_table_join(hash_table, left_spec, right_spec);
+		//else
+		//	hash_table_NOTjoin(hash_table, left_spec, right_spec);
+	}
+
+	return 0;
+}
+
+int parse_dataset_w(hashtable *hash_table, char *dataset_w) {
+	FILE *csv;
+	char line[512];
+
+	/* Don't count the header line in total */
+	long training_n, validation_n, test_n, line_total = -1;
 
 	if (!(csv = fopen(dataset_w, "r"))) {
 		perror(dataset_w);
 		return errno;
 	}
 
-	/* Skip first line (column titles) */
-	if (!fgets(line, sizeof(line), csv)) {
+	/* Find total lines, to split 60-20-20 */
+	while (fgets(line, sizeof(line), csv))
+		line_total++;
+
+	if (line_total <= 0) {
 		perror("dataset_w is empty");
+		fclose(csv);
+
 		return errno;
 	};
 
-	while (fgets(line, sizeof(line), csv)) {
-		left_spec = strtok_r(line, ",", &saveptr);
-		right_spec = strtok_r(NULL, ",", &saveptr);
-		label = strtok_r(NULL, ",", &saveptr);
+	/* Dataset W split in 3 */
+	training_n = line_total * 60 / 100;
+	validation_n = line_total * 20 / 100;
+	test_n = line_total - training_n - validation_n;
 
-		/* We only care about cliques */
-		if (label[0] == '1')
-			hash_table_join(hash_table, left_spec, right_spec);
-	}
+	/* Parse Dataset W */
+	rewind(csv);
+
+	relate_specs(hash_table, csv, training_n);
 
 	fclose(csv);
 
@@ -250,7 +279,7 @@ int begin_operations(int entries, char *output, char *dataset_x, char *dataset_w
 	fputs("Reading Dataset X...\n", stderr);
 	if (!(ret = insert_specs(&hash_table, dataset_x))) {
 		fputs("Reading Dataset W...\n", stderr);
-		if (!(ret = join_specs(&hash_table, dataset_w))) {
+		if (!(ret = parse_dataset_w(&hash_table, dataset_w))) {
 			fputs("Writing output csv...\n", stderr);
 			ret = print_pairs_csv(&hash_table, output);
 		}
