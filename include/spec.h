@@ -50,7 +50,6 @@ void delete_specNode(node *spec);
 void delete_specList(node *head);
 node *search_spec(node *head, char *id, int *pos);
 void clique_rearrange(node *spec1, node *spec2);
-anti_clique *anti_clique_init(clique *c);
+anti_clique *anti_clique_init(clique *c, anti_clique *next);
 void anti_clique_insert(node *spec1, node *spec2);
-char **getValues(node *spec, char *property);
 #endif

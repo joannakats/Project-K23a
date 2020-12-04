@@ -1,5 +1,4 @@
 #include "spec.h"
-#include "hashtable.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -214,8 +213,11 @@ void clique_rearrange(node *spec1, node *spec2) {
 	if (ac2 != NULL) {
 
 		/* find tail of spec1's anti-clique list */
-		while (ac1->next != NULL)
-			ac1 = ac1->next;
+		if (ac1 != NULL) {
+			while (ac1->next != NULL) {
+				ac1 = ac1->next;
+			}
+		}
 
 		/* attach spec2's anti-clique to that tail */
 		ac1->next = ac2;
@@ -273,14 +275,9 @@ void clique_rearrange(node *spec1, node *spec2) {
 /* this function is called when spec1 and spec2 are definitely not alike */
 void anti_clique_insert(node *spec1, node *spec2) {
 	anti_clique *ac1 = spec1->clique->NegCorrel;
-	anti_clique *ac2 = spec2->clique->NegCorrel;
 
-	/* find the tails of the anti_clique lists*/
-
-	if (ac1->diff == spec2->clique) //in case there is only one anti_clique node
-		return;
-
-	while (ac1->next != NULL) {
+	/* search if a negative correlation between spec1 and spec2 already exists */
+	while (ac1 != NULL) {
 		/* if there is already a negative correlation between spec1's and spec2's cliques
 		   there is nothing to be done */
 		if (ac1->diff == spec2->clique)	//no need to check for both, negative correlation is a two way relation
@@ -289,31 +286,17 @@ void anti_clique_insert(node *spec1, node *spec2) {
 		ac1 = ac1->next;
 	}
 
-	while (ac2->next != NULL) {
-		ac2 = ac2->next;
-	}
 
-	ac1->next = anti_clique_init(spec2->clique);
-	ac2->next = anti_clique_init(spec1->clique);
+	/* every new anti_clique node is put at the top of the anti_clique list */
+	spec1->clique->NegCorrel = anti_clique_init(spec2->clique, spec1->clique->NegCorrel);
+	spec2->clique->NegCorrel = anti_clique_init(spec1->clique, spec2->clique->NegCorrel);
 }
 
 
 /* allocates memory for anti_clique structure and initializes */
-anti_clique *anti_clique_init(clique *c) {
+anti_clique *anti_clique_init(clique *c, anti_clique *next) {
 	anti_clique *ac = malloc(sizeof(anti_clique));
-	ac->next = NULL;
+	ac->next = next;
 	ac->diff = c;
 	return ac;
-}
-
-
-/* searches for a certain property in a particular spec, if not found a
-   NULL pointer is returned */
-char **getValues(node *spec, char *property) {
-	int index = hash(property, spec->fieldCount);
-
-	if (!strcmp(property, spec->fields[index].property))
-		return spec->fields[index].values;
-
-	return NULL;
 }
