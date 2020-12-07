@@ -1,8 +1,10 @@
 #ifndef TRAINING_H
 #define TRAINING_H
 
-// TODO: probably dictionary.h
 #include "hashtable.h"
+// TODO: probably dictionary.h
+// DOEST EXIST YET JUST DEFINE IT IN SOME WAY FOR NOW
+typedef hashtable dictionary;
 
 void training_init(char *stopwords_file);
 void training_destroy(char *filename);

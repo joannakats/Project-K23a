@@ -1,6 +1,7 @@
 #ifndef OPERATIONS_H
 #define OPERATIONS_H
 
+#include <stdio.h>
 #include "hashtable.h"
 
 int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output);
