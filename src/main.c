@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 	char *output, *dataset_x, *dataset_w;
 
 	if (!(ret = get_opts(argc, argv, &entries, &output, &dataset_x, &dataset_w)))
-		ret = begin_operations(entries, output, dataset_x, dataset_w);
+		ret = begin_operations(entries, dataset_x, dataset_w, output);
 
 	free(output);
 	free(dataset_w);

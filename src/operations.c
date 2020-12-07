@@ -5,130 +5,12 @@
 #include <string.h>
 
 #include "common.h"
+#include "json.h"
 #include "operations.h"
+#include "training.h"
 
-int parse_json_field(FILE *json, char *line, field *current_field) {
-	char *property, *value, *temp = NULL;
-
-	if (!line)
-		return -1;
-
-	/* Find opening quote of property string */
-	strtok_r(line, "\"", &property);
-	if (!property[0]) {
-		fputs("No property field found", stderr);
-		return -1;
-	}
-
-	/* Find closing quote of property string */
-	if (!(temp = strstr(property, "\":"))) {
-		fputs("Incomplete property field", stderr);
-		return -1;
-	}
-	temp[0] = '\0';                  /* Cut property at the closing quote */
-
-	/* Set current field property and value count, initially = 1 */
-	setField(current_field, 1, property);
-
-	/* Find opening quote of value string */
-	strtok_r(temp + 1, "\"", &value);
-
-	/* If we find a quote after the colon, this is a case of "string value"
-	 * (e.g. "battery": "Li-ion") */
-	if (value[0]) {
-		/* Find closing quote of property string */
-		if (!(temp = strrchr(value, '"'))) {
-			fputs("Incomplete value field", stderr);
-			value = "";
-		}
-		temp[0] = '\0';             /* Cut value at the closing quote */
-
-		setValue(current_field, 0, value);
-	} else {
-		/* We have a JSON array[] in our hands!
-		 * e.g. "color" : [
-		 *    "red",
-		 *    "blue"
-		 * ] */
-
-		/* Set to zero, incremented to 1 in the loop */
-		current_field->cnt = 0;
-		while (fgets(line, LINE_SIZE, json)) {
-			/* Find opening quote of array member string */
-			strtok_r(line, "\"", &value);
-
-			/* A line with a single bracket ] denotes the end of the array.
-			 * value will be an empty string because no quote was found */
-			if (!value[0])
-				break;
-
-			/* Find closing quote of array member string */
-			if (!(temp = strrchr(value, '"'))) {
-				fputs("Incomplete value field", stderr);
-				value = "";
-			}
-			temp[0] = '\0';     /* Cut value at the closing quote */
-
-			current_field->cnt++;
-			current_field->values = realloc(current_field->values, current_field->cnt * sizeof(current_field->values[0]));
-
-			setValue(current_field, current_field->cnt - 1, value);
-		}
-	}
-
-	return 0;
-}
-
-int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) {
-	FILE *json;
-	char *line;
-	int error = 0;
-
-	field *current_field;
-
-	/* Initialize as NULL, old field structs are part of spec nodes now */
-	*spec_fields = NULL;
-	*spec_field_count = 0;
-
-	if (!(line = malloc(LINE_SIZE))) {
-		perror("line buffer");
-		return errno;
-	};
-
-	if (!(json = fopen(path, "r"))) {
-		perror(path);
-		return errno;
-	}
-
-	while (fgets(line, LINE_SIZE, json)) {
-		if (line[0] == '{' || line[0] == '}')
-			continue;
-
-		/* Only add new field if previous was filled */
-		if (!error) {
-			/* New field entry, resize arrays */
-			(*spec_field_count)++;
-			*spec_fields = realloc(*spec_fields, *spec_field_count * sizeof(**spec_fields));
-
-			if (!*spec_fields) {
-				perror("spec_fields");
-				return errno;
-			}
-
-			current_field = &(*spec_fields)[*spec_field_count - 1];
-		}
-
-		error = parse_json_field(json, line, current_field);
-	}
-
-	fclose(json);
-	free(line);
-
-	return 0;
-}
-
-/* Reading Dataset X */
-int insert_specs(hashtable *hash_table, char *dataset_x) {
+/* Phase 1 - Insert Dataset X in data structures */
+int insert_dataset_x(hashtable *hash_table, char *dataset_x) {
 	DIR *dir;
 	struct dirent *dirent;
 
@@ -157,7 +39,7 @@ int insert_specs(hashtable *hash_table, char *dataset_x) {
 		/* Recurse into site (e.g. www.ebay.com) subdirectories
 		 * NOTE: DT_UNKNOWN for some filesystems */
 		if (dirent->d_type == DT_DIR) {
-			insert_specs(hash_table, path);
+			insert_dataset_x	(hash_table, path);
 		} else {
 			/* Skip non-json files */
 			if (!(extention = strrchr(path, '.')))
@@ -182,7 +64,7 @@ int insert_specs(hashtable *hash_table, char *dataset_x) {
 	return 0;
 }
 
-/* Create Training Set */
+/* Phase 2 - Join specs from Dataset W  */
 int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 	long line_n;
 	char line[512];
@@ -197,8 +79,11 @@ int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 		right_spec = strtok_r(NULL, ",", &saveptr);
 		label = strtok_r(NULL, ",", &saveptr);
 
-		if (label[0] == '1')
+		if (label[0] == '1') {
+			printf("%s,%s\n", left_spec, right_spec);
 			hash_table_join(hash_table, left_spec, right_spec);
+		}
+		//TODO: Negative relations
 		//else
 		//	hash_table_NOTjoin(hash_table, left_spec, right_spec);
 	}
@@ -206,7 +91,7 @@ int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 	return 0;
 }
 
-int parse_dataset_w(hashtable *hash_table, char *dataset_w) {
+static int parse_dataset_w(hashtable *hash_table, char *dataset_w) {
 	FILE *csv;
 	char line[512];
 
@@ -244,7 +129,8 @@ int parse_dataset_w(hashtable *hash_table, char *dataset_w) {
 	return 0;
 }
 
-int print_pairs_csv(hashtable *hash_table, char *output) {
+/* Phase 3 - Output */
+static int print_pairs_csv(hashtable *hash_table, char *output) {
 	FILE *output_csv;
 
 	/* Print to stdout by default */
@@ -268,7 +154,7 @@ int print_pairs_csv(hashtable *hash_table, char *output) {
 	return 0;
 }
 
-int begin_operations(int entries, char *output, char *dataset_x, char *dataset_w) {
+int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output) {
 	int ret = 0;
 
 	/* Part 1 operations */
@@ -277,7 +163,7 @@ int begin_operations(int entries, char *output, char *dataset_x, char *dataset_w
 		return -3;
 
 	fputs("Reading Dataset X...\n", stderr);
-	if (!(ret = insert_specs(&hash_table, dataset_x))) {
+	if (!(ret = insert_dataset_x(&hash_table, dataset_x))) {
 		fputs("Reading Dataset W...\n", stderr);
 		if (!(ret = parse_dataset_w(&hash_table, dataset_w))) {
 			fputs("Writing output csv...\n", stderr);

@@ -133,7 +133,7 @@ void test_json_insertion(void) {
 
 	printf("Dataset X at: %s\n", dataset_x);
 
-	TEST_CHECK(!insert_specs(&hash_table, dataset_x));
+	TEST_CHECK(!insert_dataset_x(&hash_table, dataset_x));
 
 	/* For every spec in the hash_table, check against the original JSON */
 	for (int i = 0; i < hash_table.tableSize; ++i) {
