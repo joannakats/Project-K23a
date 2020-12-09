@@ -166,12 +166,14 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 	if (!hash_table.list)
 		return -3;
 
+	/* TODO: Maybe with entries */
 	vocabulary = bow_init(10000);
 
 	training_init("stopwords.txt");
 
 	fputs("Reading Dataset X...\n", stderr);
 	if (!(ret = insert_dataset_x(&hash_table, dataset_x, vocabulary))) {
+		/* TODO: spec_make local */
 		fputs("Reading Dataset W...\n", stderr);
 		if (!(ret = parse_dataset_w(&hash_table, dataset_w, vocabulary))) {
 			fputs("Writing output csv...\n", stderr);
@@ -179,7 +181,10 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 		}
 	}
 
-	printf("Distinct Words: %d\n", vocabulary->count);
+	// TODO: Debug print global vocabulary
+	printf("Distinct Words: %d\n", vocabulary->size);
+	for (int i = 0; i < vocabulary->size; ++i)
+		printf("%s\t%d\n", vocabulary->words[i], vocabulary->occurrences[i]);
 
 	/* Cleanup */
 	training_destroy();

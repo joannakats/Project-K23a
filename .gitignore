@@ -16,9 +16,10 @@
 # Executables
 *.exe
 specs
-tests/test_hstable
 tests/test_json_insertion
+tests/test_hstable
 tests/test_spec
+tests/test_clique
 
 # Valgrind
 vgcore.*

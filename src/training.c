@@ -28,6 +28,7 @@ void training_init(char *stopwords_file) {
 }
 
 /* Vectorize a string, only words, not numbers, not capitalized */
+/* TODO: global local version of shite (MOVE to preprocessing.c) */
 void bag_of_words(char *str, bow *vocabulary) {
 	char *a, *b, *c;
 	char word[512];

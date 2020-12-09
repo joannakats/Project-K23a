@@ -4,6 +4,7 @@
 #define VOCABULARY_H
 
 #include "hashtable.h"
+#include "spec.h"
 
 typedef struct bow_bucket {
 	struct bow_bucket *next;
@@ -23,11 +24,16 @@ typedef struct bow_bucket {
  * - BoW model: the occurences of the words in this specific spec
  * - TF-IDF model: the tf-idf factors, originating from the BoW model */
 typedef struct bow {
-	int count;
+	/* TODO: count in hashtable struct, used for spec as well */
+	int size;
 	char **words;
-	int *occurrences;
+	int *texts;   /* number of texts containing word (used in idf factor) */
+	int *occurrences;                                /* global occurences */
+	double *idf_factors;                               /* unique per word */
 	hashtable ht;                                /* Points to bow_buckets */
 } bow;
+
+/* GLOBAL BoW functions */
 
 bow *bow_init(int tableSize);
 int bow_word_increment(bow *vocabulary, char *word);
@@ -36,17 +42,33 @@ int bow_word_increment(bow *vocabulary, char *word);
 int bow_word_index(bow *vocabulary, char *word);
 void bow_delete(bow *vocabulary);
 
+/* Computes and writes global->idf_factors, unique to each word (Uses texts and spec_ht->count) */
+int compute_idf(bow* global, hashtable *spec_ht);
 
-/* Local-spec functions */
 
+/* LOCAL (spec) functions */
+
+/* BoW phase */
 /* Makes a zeroed "occurences" array parallel to the global bow array, for use in one spec */
-int *spec_bow_occurences_init(bow *global);
-/* TODO: Piazza hmm? int *spec_tf_factors_init(bow *global); */
+int *spec_bow_occurences_init(bow *global, node *spec);
 
 /* Increment occurence counter of a word in a spec.
  * This uses the hashtable from the global bow */
-int spec_word_increment(bow *global, int *occurences, char* word);
+int spec_word_increment(bow *global, node *spec, char* word);
 
-/* TODO: TF-IDF */
+
+/* TF phase */
+/* Generate TF vector from BoW vector (bow_occurences) (Uses global bow for array size) */
+int spec_bow_to_tf(bow* global, node *spec);
+
+
+/* TF-IDF phase */
+/* Scan though completed local bow_occurences array, texts[i]++ for every occurence[i] > 0 */
+int spec_update_texts(bow *global, node *spec);
+
+/* Updates tf_idf_factors: Multiply global idf factors with existing local tf vector */
+int spec_tf_idf(bow* global, node *spec);
+
+/* TODO: delete this = free the arrays in spec_delete */
 
 #endif /* VOCABULARY_H */

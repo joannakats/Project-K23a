@@ -12,7 +12,7 @@ bow *bow_init(int tableSize) {
 		return NULL;
 	}
 
-	new->count = 0;
+	new->size = 0;
 	new->words = NULL;
 	new->occurrences = NULL;
 	new->ht = hashtable_init(tableSize);
@@ -46,29 +46,29 @@ int bow_word_increment(bow *vocabulary, char *word) {
 	array_index = bow_word_index(vocabulary, word);
 
 	/* Increment existing word counter */
-	if (array_index > 0) {
+	if (array_index >= 0) {
 		vocabulary->occurrences[array_index]++;
 		return 0;
 	}
 
 	/* At this point, the word isn't present our vocabulary yet.
 	 * 1: Grow */
-	vocabulary->count++;
-	vocabulary->words = realloc(vocabulary->words, vocabulary->count * sizeof(vocabulary->words[0]));
-	vocabulary->occurrences = realloc(vocabulary->occurrences, vocabulary->count * sizeof(vocabulary->occurrences[0]));
+	vocabulary->size++;
+	vocabulary->words = realloc(vocabulary->words, vocabulary->size * sizeof(vocabulary->words[0]));
+	vocabulary->occurrences = realloc(vocabulary->occurrences, vocabulary->size * sizeof(vocabulary->occurrences[0]));
 
 	// TODO: error check
 
 	/* 2: Append word to array */
-	vocabulary->words[vocabulary->count - 1] = strdup(word);
-	vocabulary->occurrences[vocabulary->count - 1] = 1;
+	vocabulary->words[vocabulary->size - 1] = strdup(word);
+	vocabulary->occurrences[vocabulary->size - 1] = 1;
 
 	/* 3: Add array_index to hashtable */
 	ht_index = hash(word, vocabulary->ht.tableSize);
 	bucket = malloc(sizeof(*bucket));
 
 	/* New bucket as head of list, points to place in indexed array */
-	bucket->index = vocabulary->count - 1;
+	bucket->index = vocabulary->size - 1;
 	bucket->next = vocabulary->ht.list[ht_index];
 	vocabulary->ht.list[ht_index] = bucket;
 
@@ -79,7 +79,7 @@ void bow_delete(bow *vocabulary) {
 	int i;
 	bow_bucket *current, *next;
 
-	for (i = 0; i < vocabulary->count; ++i)
+	for (i = 0; i < vocabulary->size; ++i)
 		free(vocabulary->words[i]);
 
 	free(vocabulary->words);
