@@ -121,6 +121,8 @@ int compare_json(char *json_filename, char *tmp_filename) {
 
 void test_json_insertion(void) {
 	hashtable hash_table = hashtable_init(5);
+	bow vocabulary;
+
 	node* spec;
 	char *dataset_x = "json_insertion/dataset_x";
 	//char *dataset_x = "../../Datasets/2013_camera_specs";
@@ -133,7 +135,7 @@ void test_json_insertion(void) {
 
 	printf("Dataset X at: %s\n", dataset_x);
 
-	TEST_CHECK(!insert_dataset_x(&hash_table, dataset_x));
+	TEST_CHECK(!insert_dataset_x(&hash_table, dataset_x, &vocabulary));
 
 	/* For every spec in the hash_table, check against the original JSON */
 	for (int i = 0; i < hash_table.tableSize; ++i) {

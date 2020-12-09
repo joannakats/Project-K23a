@@ -1,14 +1,14 @@
 #ifndef TRAINING_H
 #define TRAINING_H
 
-#include "hashtable.h"
-// TODO: probably dictionary.h
-// DOEST EXIST YET JUST DEFINE IT IN SOME WAY FOR NOW
-typedef hashtable dictionary;
+#include "vocabulary.h"
 
+/* TODO: if only stopwords, make this title more speicific */
 void training_init(char *stopwords_file);
-void training_destroy(char *filename);
+void training_destroy();
 
-void bag_of_words(char *str, dictionary *dict);
+/* Adds tokens of string to the Bag of Words
+ * (only words with letters, not stopwords, not capitalized) */
+void bag_of_words(char *str, bow *vocabulary);
 
 #endif /* TRAINING_H */

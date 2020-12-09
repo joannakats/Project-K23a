@@ -4,6 +4,7 @@
 
 #include "common.h"
 #include "json.h"
+#include "training.h"
 
 static int parse_json_field(FILE *json, char *line, field *current_field) {
 	char *property, *value, *temp = NULL;
@@ -77,14 +78,13 @@ static int parse_json_field(FILE *json, char *line, field *current_field) {
 	return 0;
 }
 
-int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) {
+int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields, bow *vocabulary) {
 	FILE *json;
 	char *line;
 	int error = 0;
 
 	field *current_field;
 
-	//dictionary spec_dictionary = hashtable_init(100);
 	// TODO: Remove Debug: Print json being parsed
 	//printf("%s\n", path);
 
@@ -122,20 +122,11 @@ int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields) 
 
 		error = parse_json_field(json, line, current_field);
 
-		/* bag_of_words(current_field->property, &spec_dictionary);
+		/* Add field to global vocabulary (making a vector) */
+		bag_of_words(current_field->property, vocabulary);
 		for (int i = 0; i < current_field->cnt; ++i)
-			bag_of_words(current_field->values[i], &spec_dictionary); */
+			bag_of_words(current_field->values[i], vocabulary);
 	}
-
-	/* Print BoW
-	word_node *w;
-	for (int i = 0; i < spec_dictionary.tableSize; ++i) {
-		w = spec_dictionary.list[i];
-		while (w) {
-			printf("%s\t%d\n", w->word, w->count);
-			w = w->next;
-		}
-	} */
 
 	fclose(json);
 	free(line);

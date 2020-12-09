@@ -7,40 +7,56 @@
 
 #include "training.h"
 
-dictionary stopwords;
+static bow *stopwords;
 
-void stopwords_init(char *filename) {
-	// TODO: Make dictionary (hashtable) of stopwords
+void training_init(char *stopwords_file) {
+	FILE *stahp;
+	char word[512];
+
+	/* Initialize stopwords vocabulary (global) */
+	stopwords = bow_init(100);
+
+	stahp = fopen(stopwords_file, "r");
+	// TODO error check;
+
+	while (fgets(word, sizeof(word), stahp)) {
+		*strchr(word, '\n') = '\0';        /* Remove trailing newline */
+		bow_word_increment(stopwords, word);
+	}
+
+	fclose(stahp);
 }
 
 /* Vectorize a string, only words, not numbers, not capitalized */
-// TODO: probably dictionary.h
-// DOEST EXIST YET
-// void bag_of_words(char *str, dictionary *dict) {
-// 	char *a, *b, *c;
-// 	char word[512];
-// 	int len;
+void bag_of_words(char *str, bow *vocabulary) {
+	char *a, *b, *c;
+	char word[512];
+	int len;
 
-// 	a = str;
-// 	/* Run up to the null byte */
-// 	while (*a) {
-// 		/* Find word boundaries [A, B] */
-// 		for (; *a && !isalpha(*a); ++a);
-// 		for (b = a; *b && isalpha(*b); ++b);
+	a = str;
+	/* Run up to the null byte */
+	while (*a) {
+		/* Find word boundaries [A, B] */
+		for (; *a && !isalpha(*a); ++a);
+		for (b = a; *b && isalpha(*b); ++b);
 
-// 		/* Temporary buffer for word */
-// 		len = b - a;
-// 		memmove(word, a, len);
-// 		word[len] = '\0';
+		/* Temporary buffer for word */
+		len = b - a;
+		memmove(word, a, len);
+		word[len] = '\0';
 
-// 		/* To lowercase */
-// 		for (c = word; *c; ++c) *c = tolower(*c);
+		/* To lowercase */
+		for (c = word; *c; ++c) *c = tolower(*c);
 
-// 		//puts(word);
-// 		/* Ignore stopwords */
-// 		if (!dict_word_find(&stopwords, word))
-// 			dict_word_add(dict, word);
+		//puts(word);
+		/* Ignore stopwords */
+		if (bow_word_index(stopwords, word) < 0)
+			bow_word_increment(vocabulary, word);
 
-// 		a = b;
-// 	}
-// }
+		a = b;
+	}
+}
+
+void training_destroy() {
+	bow_delete(stopwords);
+}

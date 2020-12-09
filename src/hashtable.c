@@ -22,7 +22,7 @@ unsigned  long  hash(const char* key,int tableSize){
 		result=(result<<5)+result+*p;
 		++p;
 	}
-	result=result%tableSize; 
+	result=result%tableSize;
 	return result;
 }
 

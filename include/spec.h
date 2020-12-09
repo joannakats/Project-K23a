@@ -20,6 +20,8 @@ typedef struct node {
 	bool hasListOfClique; // if true then this node "contains" the list of the clique originally
 	field *fields; // array of fields
 	int fieldCount; // counter of pairs <property - value> (the size of the array)
+	int bow_occurences; // parallel arrays to the global bow arrays
+	double tf_factors;
 } node;
 
 

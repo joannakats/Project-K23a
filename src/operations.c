@@ -8,9 +8,10 @@
 #include "json.h"
 #include "operations.h"
 #include "training.h"
+#include "vocabulary.h"
 
 /* Phase 1 - Insert Dataset X in data structures */
-int insert_dataset_x(hashtable *hash_table, char *dataset_x) {
+int insert_dataset_x(hashtable *hash_table, char *dataset_x, bow *vocabulary) {
 	DIR *dir;
 	struct dirent *dirent;
 
@@ -39,7 +40,7 @@ int insert_dataset_x(hashtable *hash_table, char *dataset_x) {
 		/* Recurse into site (e.g. www.ebay.com) subdirectories
 		 * NOTE: DT_UNKNOWN for some filesystems */
 		if (dirent->d_type == DT_DIR) {
-			insert_dataset_x	(hash_table, path);
+			insert_dataset_x(hash_table, path, vocabulary);
 		} else {
 			/* Skip non-json files */
 			if (!(extention = strrchr(path, '.')))
@@ -47,7 +48,7 @@ int insert_dataset_x(hashtable *hash_table, char *dataset_x) {
 			else if (strcmp(extention, ".json"))
 				continue;
 
-			read_spec_from_json(path, &spec_field_count, &spec_fields);
+			read_spec_from_json(path, &spec_field_count, &spec_fields, vocabulary);
 
 			/* Create spec id (e.g. buy.net//10) */
 			sprintf(spec_id, "%s//%s", basename(dataset_x), dirent->d_name);
@@ -80,7 +81,7 @@ int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 		label = strtok_r(NULL, ",", &saveptr);
 
 		if (label[0] == '1') {
-			printf("%s,%s\n", left_spec, right_spec);
+			//printf("%s,%s\n", left_spec, right_spec);
 			hash_table_join(hash_table, left_spec, right_spec);
 		}
 		//TODO: Negative relations
@@ -91,7 +92,8 @@ int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 	return 0;
 }
 
-static int parse_dataset_w(hashtable *hash_table, char *dataset_w) {
+/* TODO: vocabulary not used yet, but needed in training the model */
+static int parse_dataset_w(hashtable *hash_table, char *dataset_w, bow *vocabulary) {
 	FILE *csv;
 	char line[512];
 
@@ -156,22 +158,32 @@ static int print_pairs_csv(hashtable *hash_table, char *output) {
 
 int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output) {
 	int ret = 0;
+	/* Project Data Structures */
+	hashtable hash_table;
+	bow *vocabulary;
 
-	/* Part 1 operations */
-	hashtable hash_table = hashtable_init(entries);
+	hash_table = hashtable_init(entries);
 	if (!hash_table.list)
 		return -3;
 
+	vocabulary = bow_init(10000);
+
+	training_init("stopwords.txt");
+
 	fputs("Reading Dataset X...\n", stderr);
-	if (!(ret = insert_dataset_x(&hash_table, dataset_x))) {
+	if (!(ret = insert_dataset_x(&hash_table, dataset_x, vocabulary))) {
 		fputs("Reading Dataset W...\n", stderr);
-		if (!(ret = parse_dataset_w(&hash_table, dataset_w))) {
+		if (!(ret = parse_dataset_w(&hash_table, dataset_w, vocabulary))) {
 			fputs("Writing output csv...\n", stderr);
 			ret = print_pairs_csv(&hash_table, output);
 		}
 	}
 
+	printf("Distinct Words: %d\n", vocabulary->count);
+
 	/* Cleanup */
+	training_destroy();
+	bow_delete(vocabulary);
 	delete_hashtable(&hash_table);
 
 	return ret;
