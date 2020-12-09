@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hashtable.h"
+#include "spec_hashtable.h"
 #include "spec.h"
 
 hashtable hashtable_init(int size){
@@ -22,9 +23,20 @@ unsigned  long  hash(const char* key,int tableSize){
 		result=(result<<5)+result+*p;
 		++p;
 	}
-	result=result%tableSize; //
+	result=result%tableSize; 
 	return result;
 }
+
+int delete_hashtable(hashtable *hsTable){
+	int size=hsTable->tableSize;
+	for(int i=0;i<size;i++){
+		delete_specList(hsTable->list[i]);
+	}
+	free(hsTable->list);
+	return 0;
+}
+
+/*spec_hashtable functions */
 
 void insert_entry(hashtable* hsTable,char* id,field *fieldsArray,int numOfFields) {
 	int index = hash(id, hsTable->tableSize);
@@ -36,7 +48,6 @@ node *search_hashTable_spec(hashtable* hsTable,char* id,int *pos){
 	node *found=search_spec(hsTable->list[index],id,pos);
 	return found;
 }
-
 
 /*The following function search for left and right spec.If both specs are found 
 left spec will point to its list of clique nodes and right spec
@@ -51,41 +62,6 @@ void hash_table_join(hashtable* hsTable,char* left_id,char* right_id){
 
 }
 
-
-
-
-int delete_hashtable(hashtable *hsTable){
-	int size=hsTable->tableSize;
-	for(int i=0;i<size;i++){
-		delete_specList(hsTable->list[i]);
-	}
-	free(hsTable->list);
-	return 0;
-}
-
-/* printing hashtable for debug */
-void print_hashTable(const hashtable *hsTable){
-	if(hsTable!=NULL){
-		node* current;
-		cliqueNode* cliqueNode;
-		for(int i=0;i<hsTable->tableSize;i++){
-			printf("\nPosition in the hashtable : %d \n",i);
-			current=hsTable->list[i];
-			while(current!=NULL){
-				printf("\nSpec: %s \n",current->id);
-				if(current->hasListOfClique==true){
-					printf("Clique: ");
-					cliqueNode=current->clique;
-					while(cliqueNode!=NULL){
-						printf("%s\n",cliqueNode->spec->id);
-						cliqueNode=cliqueNode->next;
-					}
-				}
-				current=current->next;
-			}
-		}
-	}
-}
 /* Τhe following function prints the first node of the clique with the following nodes,
 the second with its next ones and so on for every clique list. */
 void print_pairs(const hashtable *hsTable){
@@ -99,7 +75,7 @@ void print_pairs(const hashtable *hsTable){
 				//printf("\nSpec: %s \n",current->id);
 				if(current->hasListOfClique==true){
 				//	printf("Clique: ");
-					cliqueLeft=current->clique;
+					cliqueLeft=current->clique->head;
 					while(cliqueLeft->next!=NULL){
 						cliqueRight=cliqueLeft->next;
 						while(cliqueRight!=NULL){
