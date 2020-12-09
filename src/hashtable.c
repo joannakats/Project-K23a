@@ -7,7 +7,7 @@
 hashtable hashtable_init(int size){
 	hashtable hsTable;
 	hsTable.tableSize=size;
-	hsTable.list= malloc(size*sizeof(node*));
+	hsTable.list= malloc(size*sizeof(void*));
 	for(int i=0;i<size;i++){
 		hsTable.list[i]=NULL;
 		}
