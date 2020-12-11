@@ -39,9 +39,7 @@ void clique_rearrange(node *spec1, node *spec2) {
 	anti_clique *ac1 = spec1->clique->NegCorrel;
 	anti_clique *ac2 = spec2->clique->NegCorrel;
 	clique *clique2 = spec2->clique;
-	printf("#####################################################################CLIQUE_REARRANGE\n");
-	printf("spec1->clique = %p\n", spec1->clique);
-	printf("spec2->clique = %p\n", spec2->clique);
+
 	if (spec1->clique == spec2->clique)
 		return;
 
@@ -91,10 +89,7 @@ void clique_rearrange(node *spec1, node *spec2) {
 		/* make sure the cliques that are negatively correlated with spec2->clique
 		   also point to spec1->clique */
 		while (tmp != NULL) {
-			printf("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&NEW ANTI_CLIQUE LIST\n" );
 			anti_clique *cur = tmp->diff->NegCorrel;
-			printf("tmp->diff = %p\n", tmp->diff);
-		// 		printf("\nHEAD = %p\n", cur);
 			prev = 	NULL;
 
 			bool flag1, flag2;
@@ -102,11 +97,8 @@ void clique_rearrange(node *spec1, node *spec2) {
 
 			/* traverse tmp->diff's anti_clique list */
 			while(cur != NULL) {
-				printf("cur = %p\n", cur);
 				/* find the anti_clique node that points to spec2->clique */
 	 			if (cur->diff == clique2) {
-					//printf("FOUND CLIQUE2\n");
-					flag1 = true;
 					cur->diff = spec1->clique; //replace pointer with spec1's clique
 					prev = cur;
 					cur = cur->next;
@@ -124,7 +116,6 @@ void clique_rearrange(node *spec1, node *spec2) {
 						tmp->diff->NegCorrel = cur->next;	//assign as head next node
 						prev = NULL;
 						cur = cur->next;
-						printf("\tDELETE OTHER = %p\n", other);
 						free(other);
 						// continue;/////////////
 					}
@@ -150,7 +141,6 @@ void clique_rearrange(node *spec1, node *spec2) {
 
 	}
 
-	printf("FREEING CLIQUE2 = %p\n", clique2);
 	free(clique2);
 
 }
