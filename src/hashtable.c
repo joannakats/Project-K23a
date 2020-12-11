@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hashtable.h"
-#include "spec.h"
 
 hashtable hashtable_init(int size){
 	hashtable hsTable;
 	hsTable.tableSize=size;
+	hsTable.count=0;
 	hsTable.list= malloc(size*sizeof(void*));
 	for(int i=0;i<size;i++){
 		hsTable.list[i]=NULL;
@@ -24,13 +24,4 @@ unsigned  long  hash(const char* key,int tableSize){
 	}
 	result=result%tableSize;
 	return result;
-}
-
-int delete_hashtable(hashtable *hsTable){
-	int size=hsTable->tableSize;
-	for(int i=0;i<size;i++){
-		delete_specList(hsTable->list[i]);
-	}
-	free(hsTable->list);
-	return 0;
 }

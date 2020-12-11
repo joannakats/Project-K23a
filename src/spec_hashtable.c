@@ -24,7 +24,15 @@ void hash_table_join(hashtable* hsTable,char* left_id,char* right_id){
 	if(left_pos!=-1 && right_pos!=-1)
 				clique_rearrange(left_spec,right_spec);
 
+}
 
+void hash_table_notjoin(hashtable* hsTable,char* left_id,char* right_id){
+	int left_pos,right_pos;
+	node *left_spec=search_hashTable_spec(hsTable,left_id,&left_pos);
+	node *right_spec=search_hashTable_spec(hsTable,right_id,&right_pos);
+	if(left_pos!=-1 && right_pos!=-1)
+		anti_clique_insert(left_spec,right_spec);
+	
 }
 
 /* Τhe following function prints the first node of the clique with the following nodes,
@@ -55,4 +63,14 @@ void print_pairs(const hashtable *hsTable){
 
 		}
 	}
+}
+
+
+int delete_hashtable(hashtable *hsTable){
+	int size=hsTable->tableSize;
+	for(int i=0;i<size;i++){
+		delete_specList(hsTable->list[i]);
+	}
+	free(hsTable->list);
+	return 0;
 }
