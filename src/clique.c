@@ -39,11 +39,13 @@ void clique_rearrange(node *spec1, node *spec2) {
 	anti_clique *ac1 = spec1->clique->NegCorrel;
 	anti_clique *ac2 = spec2->clique->NegCorrel;
 	clique *clique2 = spec2->clique;
-
+	printf("#####################################################################CLIQUE_REARRANGE\n");
+	printf("spec1->clique = %p\n", spec1->clique);
+	printf("spec2->clique = %p\n", spec2->clique);
 	if (spec1->clique == spec2->clique)
 		return;
 
-	/* clique merging */
+	/* -------------------------------clique merging----------------------------------- */
 
 	/* Find tail of spec1's clique */
 	while (temp->next)
@@ -51,10 +53,9 @@ void clique_rearrange(node *spec1, node *spec2) {
 
 	/* Attach spec2's clique to that tail */
 	temp->next = spec2->clique->head;
-
-
 	//delete memory pointed by spec2's clique (we don't need it since 2 cliques merged)
-	///free(spec2->clique);
+	//printf("spec2->clique = %p\n", spec2->clique);
+	//free(spec2->clique);
 
 	/* Update the specs in that clique to point to the
 	 * newly unified spec1 clique */
@@ -63,8 +64,9 @@ void clique_rearrange(node *spec1, node *spec2) {
 		temp->spec->hasListOfClique = false;
 	}
 
-	/* anti-clique merging */
 
+	/* ----------------------------anti-clique merging-------------------------------- */
+	anti_clique *tmp = NULL;
 	if (ac2 != NULL) {
 
 		if (ac1 != NULL) {
@@ -75,54 +77,72 @@ void clique_rearrange(node *spec1, node *spec2) {
 
 			/* attach spec2's anti-clique to that tail */
 			ac1->next = ac2;
-			ac1 = ac1->next;
+			tmp = ac1->next;
 		} else {
 			/* if spec1's anti_clique list doesn't exist then just take spec2's anti_clique list */
-			ac1 = spec1->clique->NegCorrel = ac2;
+			tmp = spec1->clique->NegCorrel = ac2;
 		}
 
 
 		/* negative correlation is a two-way relation */
-		anti_clique *tmp = ac1;
-		anti_clique *other, *prev, *prev1;
-		other = prev = prev1 = NULL;
+		anti_clique *other, *prev;
+		other = NULL;
 
 		/* make sure the cliques that are negatively correlated with spec2->clique
 		   also point to spec1->clique */
 		while (tmp != NULL) {
+			printf("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&NEW ANTI_CLIQUE LIST\n" );
 			anti_clique *cur = tmp->diff->NegCorrel;
-			other = prev1 = prev = cur;
+			printf("tmp->diff = %p\n", tmp->diff);
+		// 		printf("\nHEAD = %p\n", cur);
+			prev = 	NULL;
 
-			bool flag = false;
+			bool flag1, flag2;
+			flag1 = flag2 = false;
 
 			/* traverse tmp->diff's anti_clique list */
 			while(cur != NULL) {
-
+				printf("cur = %p\n", cur);
 				/* find the anti_clique node that points to spec2->clique */
-				if (cur->diff == clique2) {
-					other = cur;
-					prev1 = prev;
-				}
-
-				if (cur->diff == spec1->clique) {	//check if this clique already points to spec1's clique
-					flag = true;
-				}
-
-				if(cur->next != NULL) {
+	 			if (cur->diff == clique2) {
+					//printf("FOUND CLIQUE2\n");
+					flag1 = true;
+					cur->diff = spec1->clique; //replace pointer with spec1's clique
 					prev = cur;
+					cur = cur->next;
+					continue;
 				}
-				cur = cur->next;
-			}
 
-			if (flag == false) {
-				other->diff = spec1->clique;
-			}else{  //remove this anti_clique node
-				if (other == prev1) {//if it's the first anti_clique node that we need to remove
-					tmp->diff->NegCorrel = other->next;
-				}else{
-					prev1->next = other->next;
+				/* check if this clique already points to spec1's clique, if so then
+				 remove this anti_clique node */
+				if (cur->diff == spec1->clique) {
+					flag2 = true;
+					other = cur;	//hold this anti_clique node
+
+					//if it's the head of the anti_clique list that needs to be removed
+					if(tmp->diff->NegCorrel == cur) {
+						tmp->diff->NegCorrel = cur->next;	//assign as head next node
+						prev = NULL;
+						cur = cur->next;
+						printf("\tDELETE OTHER = %p\n", other);
+						free(other);
+						// continue;/////////////
+					}
+					else {
+						prev->next = cur->next;
+						printf("\tDELETE OTHER = %p\n", other);
+						free(other);
+						cur = prev->next;
+						// continue;
+					}
+					continue;
 				}
-				free(other);
+
+				if (flag1 == true && flag2 == true) {	//just in case there is nothing else to be done for this anti_clique list break
+					break;
+				}
+				prev = cur;
+				cur = cur->next;
 			}
 
 			tmp = tmp->next;
@@ -130,7 +150,9 @@ void clique_rearrange(node *spec1, node *spec2) {
 
 	}
 
+	printf("FREEING CLIQUE2 = %p\n", clique2);
 	free(clique2);
+
 }
 
 
