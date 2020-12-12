@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "common.h"
 #include "vocabulary.h"
@@ -107,7 +108,35 @@ void bow_delete(bow *vocabulary) {
 }
 
 /* LOCAL (spec) functions */
+/* bow phase */
 
+int *spec_bow_occurences_init(bow *global, node *spec){
+	int size=global->ht.count;
+	spec->bow_occurences=malloc(size *sizeof(int));
+	for(int i=0;i<size;i++){
+		spec->bow_occurences[i]=0;		
+	}
+	return 0;
+}
+int spec_word_increment(bow *global, node *spec, char* word){//not sure about that
+	//find the index of the word in global->words
+	int array_index=bow_word_index(global,word);
+	//found
+	if(array_index>=0){
+		spec->bow_occurences[array_index]++;
+	}
+	return 0;
+}
+
+int compute_idf(bow* global, hashtable *spec_ht){
+	global->idf_factors=malloc(global->ht.count *sizeof(double));
+	int size=global->ht.count;
+	//for every word in global compute and write idf_factor
+	for(int i=0;i<size;i++){
+		global->idf_factors[i]=log(((double)spec_ht->count)/global->texts[i]);
+	}
+	return 0;
+}
 /* TF phase */
 int spec_bow_to_tf(bow* global, node *spec) {
 	int i;

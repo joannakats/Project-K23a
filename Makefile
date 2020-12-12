@@ -36,7 +36,7 @@ tests: $(TEST_TARGETS)
 
 ## Compilation recipe for executables (common)
 $(TARGETS):
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ -lm
 
 ## Specific dependencies for executables (object files + $(HDR))
 $(TARGET): $(SRC_OBJ) $(HDR)
