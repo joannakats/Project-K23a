@@ -7,7 +7,7 @@
 #include "common.h"
 #include "json.h"
 #include "operations.h"
-#include "training.h"
+#include "preprocessing.h"
 #include "vocabulary.h"
 
 /* Phase 1 - Insert Dataset X in data structures */
@@ -164,12 +164,14 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 
 	hash_table = hashtable_init(entries);
 	if (!hash_table.list)
-		return -3;
+		return errno;
 
-	/* TODO: Maybe with entries */
-	vocabulary = bow_init(10000);
+	if (!(vocabulary = bow_init(entries))) {
+		fputs("error in bow_init!\n", stderr);
+		return errno;
+	}
 
-	training_init("stopwords.txt");
+	preprocessing_init("stopwords.txt");
 
 	fputs("Reading Dataset X...\n", stderr);
 	if (!(ret = insert_dataset_x(&hash_table, dataset_x, vocabulary))) {
@@ -187,7 +189,7 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 		printf("%s\t%d\n", vocabulary->words[i], vocabulary->occurrences[i]);
 
 	/* Cleanup */
-	training_destroy();
+	preprocessing_destroy();
 	bow_delete(vocabulary);
 	delete_hashtable(&hash_table);
 

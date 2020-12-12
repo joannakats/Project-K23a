@@ -5,11 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "training.h"
+#include "common.h"
+#include "preprocessing.h"
 
 static bow *stopwords;
 
-void training_init(char *stopwords_file) {
+void preprocessing_init(char *stopwords_file) {
 	FILE *stahp;
 	char word[512];
 
@@ -17,7 +18,6 @@ void training_init(char *stopwords_file) {
 	stopwords = bow_init(100);
 
 	stahp = fopen(stopwords_file, "r");
-	// TODO error check;
 
 	while (fgets(word, sizeof(word), stahp)) {
 		*strchr(word, '\n') = '\0';        /* Remove trailing newline */
@@ -28,8 +28,9 @@ void training_init(char *stopwords_file) {
 }
 
 /* Vectorize a string, only words, not numbers, not capitalized */
-/* TODO: global local version of shite (MOVE to preprocessing.c) */
-void bag_of_words(char *str, bow *vocabulary) {
+
+/* Populate the global vocabulary */
+void bag_words(bow *vocabulary, char *str) {
 	char *a, *b, *c;
 	char word[512];
 	int len;
@@ -38,8 +39,8 @@ void bag_of_words(char *str, bow *vocabulary) {
 	/* Run up to the null byte */
 	while (*a) {
 		/* Find word boundaries [A, B] */
-		for (; *a && !isalpha(*a); ++a);
-		for (b = a; *b && isalpha(*b); ++b);
+		for (; *a && !isalnum(*a); ++a);
+		for (b = a; *b && isalnum(*b); ++b);
 
 		/* Temporary buffer for word */
 		len = b - a;
@@ -58,6 +59,37 @@ void bag_of_words(char *str, bow *vocabulary) {
 	}
 }
 
-void training_destroy() {
+/* Local version: Populate the local occurences */
+void spec_bag_words(bow *global, node *spec, char *str) {
+	char *a, *b, *c;
+	char word[512];
+	int len;
+
+	a = str;
+	/* Run up to the null byte */
+	while (*a) {
+		/* Find word boundaries [A, B] */
+		for (; *a && !isalnum(*a); ++a);
+		for (b = a; *b && isalnum(*b); ++b);
+
+		/* Temporary buffer for word */
+		len = b - a;
+		memmove(word, a, len);
+		word[len] = '\0';
+
+		/* To lowercase */
+		for (c = word; *c; ++c) *c = tolower(*c);
+
+		//puts(word);
+		/* Ignore stopwords */
+		/* TODO: enable this when defined
+		if (bow_word_index(stopwords, word) < 0)
+			spec_word_increment(global, spec, word); */
+
+		a = b;
+	}
+}
+
+void preprocessing_destroy() {
 	bow_delete(stopwords);
 }

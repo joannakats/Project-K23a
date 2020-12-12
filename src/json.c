@@ -4,7 +4,7 @@
 
 #include "common.h"
 #include "json.h"
-#include "training.h"
+#include "preprocessing.h"
 
 static int parse_json_field(FILE *json, char *line, field *current_field) {
 	char *property, *value, *temp = NULL;
@@ -123,9 +123,9 @@ int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields, 
 		error = parse_json_field(json, line, current_field);
 
 		/* Add field to global vocabulary (making a vector) */
-		bag_of_words(current_field->property, vocabulary);
+		bag_words(vocabulary, current_field->property);
 		for (int i = 0; i < current_field->cnt; ++i)
-			bag_of_words(current_field->values[i], vocabulary);
+			bag_words(vocabulary, current_field->values[i]);
 	}
 
 	fclose(json);
