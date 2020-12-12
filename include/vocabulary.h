@@ -1,5 +1,3 @@
-/* TODO: Maybe BoW and TF in separate header ? */
-
 #ifndef VOCABULARY_H
 #define VOCABULARY_H
 
@@ -24,11 +22,9 @@ typedef struct bow_bucket {
  * - BoW model: the occurences of the words in this specific spec
  * - TF-IDF model: the tf-idf factors, originating from the BoW model */
 typedef struct bow {
-	/* TODO: count in hashtable struct, used for spec as well */
-	int size;
 	char **words;
-	int *texts;   /* number of texts containing word (used in idf factor) */
 	int *occurrences;                                /* global occurences */
+	int *texts;   /* number of texts containing word (used in idf factor) */
 	double *idf_factors;                               /* unique per word */
 	hashtable ht;                                /* Points to bow_buckets */
 } bow;
