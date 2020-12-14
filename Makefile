@@ -1,4 +1,5 @@
 CFLAGS = -Wall -Wextra -pedantic -Iinclude
+LIBS = -lm
 
 # Run make DEBUG=1 for debug build
 DEBUG ?= 0
@@ -36,7 +37,7 @@ tests: $(TEST_TARGETS)
 
 ## Compilation recipe for executables (common)
 $(TARGETS):
-	$(CC) $(CFLAGS) -o $@ $^ -lm
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
 ## Specific dependencies for executables (object files + $(HDR))
 $(TARGET): $(SRC_OBJ) $(HDR)
@@ -47,7 +48,7 @@ tests/test_clique: tests/clique/test.o src/spec.o src/clique.o $(HDR)
 
 ## Object files
 %.o: %.c $(HDR)
-	$(CC) $(CFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) -o $@ -c $< $(LIBS)
 
 # Run tests
 check: tests
