@@ -19,7 +19,7 @@ int insert_dataset_x(hashtable *hash_table, char *dataset_x, bow *vocabulary) {
 
 	char *spec_id;
 	int spec_field_count;
-	field *spec_fields;
+	hashtable *spec_fields = NULL;
 
 	if (!(dir = opendir(dataset_x))) {
 		perror(dataset_x);
@@ -47,16 +47,15 @@ int insert_dataset_x(hashtable *hash_table, char *dataset_x, bow *vocabulary) {
 				continue;
 			else if (strcmp(extention, ".json"))
 				continue;
-
+;
 			read_spec_from_json(path, &spec_field_count, &spec_fields, vocabulary);
-
 			/* Create spec id (e.g. buy.net//10) */
 			sprintf(spec_id, "%s//%s", basename(dataset_x), dirent->d_name);
 			/* Remove extension to get final id */
 			*strrchr(spec_id, '.') = '\0';
 
 			/* Ready for hashtable insertion */
-			insert_entry(hash_table, spec_id, spec_fields, spec_field_count);
+			insert_entry(hash_table, spec_id, &spec_fields, spec_field_count);
 		}
 	}
 

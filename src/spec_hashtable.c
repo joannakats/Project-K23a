@@ -3,9 +3,9 @@
 #include <string.h>
 #include "spec_hashtable.h"
 
-void insert_entry(hashtable* hsTable,char* id,field *fieldsArray,int numOfFields) {
+void insert_entry(hashtable* hsTable,char* id,hashtable **fields,int numOfFields) {
 	int index = hash(id, hsTable->tableSize);
-	hsTable->list[index] = spec_insert(hsTable->list[index],id,fieldsArray,numOfFields);
+	hsTable->list[index] = spec_insert(hsTable->list[index],id,*fields,numOfFields);
 }
 
 node *search_hashTable_spec(hashtable* hsTable,char* id,int *pos){
@@ -14,7 +14,7 @@ node *search_hashTable_spec(hashtable* hsTable,char* id,int *pos){
 	return found;
 }
 
-/*The following function search for left and right spec.If both specs are found 
+/*The following function search for left and right spec.If both specs are found
 left spec will point to its list of clique nodes and right spec
 will point to left_spec's list of clique nodes */
 void hash_table_join(hashtable* hsTable,char* left_id,char* right_id){

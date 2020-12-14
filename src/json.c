@@ -6,7 +6,7 @@
 #include "json.h"
 #include "training.h"
 
-static int parse_json_field(FILE *json, char *line, field *current_field) {
+static int parse_json_field(FILE *json, char *line, hashtable *fields, field **current_field) {
 	char *property, *value, *temp = NULL;
 
 	if (!line)
@@ -27,7 +27,8 @@ static int parse_json_field(FILE *json, char *line, field *current_field) {
 	temp[0] = '\0';                  /* Cut property at the closing quote */
 
 	/* Set current field property and value count, initially = 1 */
-	setField(current_field, 1, property);
+	// setField(current_field, 1, property);
+	*current_field = HSfield_insert(fields, property, FIELD_TABLE_SIZE);
 
 	/* Find opening quote of value string */
 	strtok_r(temp + 1, "\"", &value);
@@ -42,7 +43,7 @@ static int parse_json_field(FILE *json, char *line, field *current_field) {
 		}
 		temp[0] = '\0';             /* Cut value at the closing quote */
 
-		setValue(current_field, 0, value);
+		setValue(*current_field, value);
 	} else {
 		/* We have a JSON array[] in our hands!
 		 * e.g. "color" : [
@@ -51,7 +52,7 @@ static int parse_json_field(FILE *json, char *line, field *current_field) {
 		 * ] */
 
 		/* Set to zero, incremented to 1 in the loop */
-		current_field->cnt = 0;
+		(*current_field)->cnt = 0;
 		while (fgets(line, LINE_SIZE, json)) {
 			/* Find opening quote of array member string */
 			strtok_r(line, "\"", &value);
@@ -68,17 +69,14 @@ static int parse_json_field(FILE *json, char *line, field *current_field) {
 			}
 			temp[0] = '\0';     /* Cut value at the closing quote */
 
-			current_field->cnt++;
-			current_field->values = realloc(current_field->values, current_field->cnt * sizeof(current_field->values[0]));
-
-			setValue(current_field, current_field->cnt - 1, value);
+			setValue(*current_field, value);
 		}
 	}
 
 	return 0;
 }
 
-int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields, bow *vocabulary) {
+int read_spec_from_json(char *path, int *spec_field_count, hashtable **spec_fields, bow *vocabulary) {
 	FILE *json;
 	char *line;
 	int error = 0;
@@ -88,8 +86,8 @@ int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields, 
 	// TODO: Remove Debug: Print json being parsed
 	//printf("%s\n", path);
 
-	/* Initialize as NULL, old field structs are part of spec nodes now */
-	*spec_fields = NULL;
+	/* Initialize hashtable of fields and counter */
+	*spec_fields = field_init(FIELD_TABLE_SIZE);
 	*spec_field_count = 0;
 
 	if (!(line = malloc(LINE_SIZE))) {
@@ -110,22 +108,14 @@ int read_spec_from_json(char *path, int *spec_field_count, field **spec_fields, 
 		if (!error) {
 			/* New field entry, resize arrays */
 			(*spec_field_count)++;
-			*spec_fields = realloc(*spec_fields, *spec_field_count * sizeof(**spec_fields));
-
-			if (!*spec_fields) {
-				perror("spec_fields");
-				return errno;
-			}
-
-			current_field = &(*spec_fields)[*spec_field_count - 1];
 		}
 
-		error = parse_json_field(json, line, current_field);
+		error = parse_json_field(json, line, *spec_fields, &current_field);
 
 		/* Add field to global vocabulary (making a vector) */
-		bag_of_words(current_field->property, vocabulary);
-		for (int i = 0; i < current_field->cnt; ++i)
-			bag_of_words(current_field->values[i], vocabulary);
+		// bag_of_words(current_field->property, vocabulary);
+		// for (int i = 0; i < current_field->cnt; ++i)
+		// 	bag_of_words(current_field->values[i], vocabulary);
 	}
 
 	fclose(json);
