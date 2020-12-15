@@ -2,8 +2,7 @@
 #define JSON_H
 
 #include "spec.h"
-#include "vocabulary.h"
 
-int read_spec_from_json(char *path, hashtable **spec_fields, bow *vocabulary);
+int read_spec_from_json(char *path, hashtable **spec_fields);
 
 #endif /* JSON_H */

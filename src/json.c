@@ -4,7 +4,6 @@
 
 #include "common.h"
 #include "json.h"
-#include "preprocessing.h"
 
 static int parse_json_field(FILE *json, char *line, hashtable *fields) {
 	char *property, *value, *temp = NULL;
@@ -75,7 +74,7 @@ static int parse_json_field(FILE *json, char *line, hashtable *fields) {
 	return 0;
 }
 
-int read_spec_from_json(char *path, hashtable **spec_fields, bow *vocabulary) {
+int read_spec_from_json(char *path, hashtable **spec_fields) {
 	FILE *json;
 	char *line;
 	//int error = 0;

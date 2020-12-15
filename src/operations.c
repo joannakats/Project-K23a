@@ -46,15 +46,19 @@ int insert_dataset_x(hashtable *hash_table, char *dataset_x, bow *vocabulary) {
 				continue;
 			else if (strcmp(extention, ".json"))
 				continue;
-;
-			read_spec_from_json(path, &spec_fields, vocabulary);
+
+			read_spec_from_json(path, &spec_fields);
+
 			/* Create spec id (e.g. buy.net//10) */
 			sprintf(spec_id, "%s//%s", basename(dataset_x), dirent->d_name);
 			/* Remove extension to get final id */
 			*strrchr(spec_id, '.') = '\0';
 
 			/* Ready for hashtable insertion */
+
+			/* GAME TIME: Ready for insertion in structs hashtable, and Bag of Words */
 			insert_entry(hash_table, spec_id, &spec_fields);
+			preprocessing_insert(vocabulary, spec_fields);
 		}
 	}
 
@@ -85,7 +89,7 @@ int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 		if (label[0] == '1')
 			hash_table_join(hash_table, left_spec, right_spec);
 		//else /* label is 0: anti_clique time */
-		//	hash_table_notjoin(hash_table, left_spec, right_spec);
+			//hash_table_notjoin(hash_table, left_spec, right_spec);
 	}
 
 	return 0;
@@ -186,19 +190,21 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 
 	fputs("Reading Dataset X...\n", stderr);
 	if (!(ret = insert_dataset_x(&hash_table, dataset_x, vocabulary))) {
-		/* TODO: spec_make local */
-		fputs("Reading Dataset W...\n", stderr);
-		if (!(ret = parse_dataset_w(&hash_table, dataset_w, vocabulary))) {
-			fputs("Writing output csv...\n", stderr);
-			ret = print_pairs_csv(&hash_table, output);
-		}
-	}
+		// TODO: Remove debug print global vocabulary
+		printf("Distinct words: %d\n", vocabulary->ht.count);
+		for (int i = 0; i < vocabulary->ht.count; ++i)
+			printf("%s\t%d texts\n", vocabulary->words[i], vocabulary->texts[i]);
 
-	// // TODO: Debug print global vocabulary
-	// Preprocessing in later commit
-	// printf("Distinct Words: %d\n", vocabulary->ht.count);
-	// for (int i = 0; i < vocabulary->ht.count; ++i)
-	// 	printf("%s\t%d\n", vocabulary->words[i], vocabulary->occurrences[i]);
+		// TODO: Enable
+		// fputs("Preprocessing specs...\n", stderr);
+		// if (!(ret = preprocessing_specs(&hash_table, vocabulary))) {
+		// 	fputs("Reading Dataset W...\n", stderr);
+		// 	if (!(ret = parse_dataset_w(&hash_table, dataset_w, vocabulary))) {
+		// 		fputs("Writing output csv...\n", stderr);
+		// 		ret = print_pairs_csv(&hash_table, output);
+		// 	}
+		// }
+	}
 
 	/* Cleanup */
 	preprocessing_destroy();

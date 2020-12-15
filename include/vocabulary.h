@@ -23,23 +23,31 @@ typedef struct bow_bucket {
  * - TF-IDF model: the tf-idf factors, originating from the BoW model */
 typedef struct bow {
 	char **words;
-	int *occurrences;                                /* global occurences */
-	int *texts;   /* number of texts containing word (used in idf factor) */
-	double *idf_factors;                               /* unique per word */
+	int *texts;                        /* number of texts containing word */
+	double *idf_factors;        /* generated from texts - unique per word */
 	hashtable ht;                                /* Points to bow_buckets */
 } bow;
 
 /* GLOBAL BoW functions */
 
 bow *bow_init(int tableSize);
-int bow_word_increment(bow *vocabulary, char *word);
 
 /* Returns -1 if word doesn't exist, otherwise, the index of it in the arrays */
 int bow_word_index(bow *vocabulary, char *word);
-void bow_delete(bow *vocabulary);
+
+/* Called for new words that definitely do not have an existing entry */
+int bow_new_word(bow *vocabulary, char *word);
+
+/* Record existence of word in a spec. Useful for idf later */
+int spec_has_word(bow *vocabulary, char *word, int **exists);
 
 /* Computes and writes global->idf_factors, unique to each word (Uses texts and spec_ht->count) */
-int compute_idf(bow* global, hashtable *spec_ht);
+int bow_compute_idf(bow* global, hashtable *spec_ht);
+
+/* Discard words that don't meet a certain "popularity" threshold */
+int bow_trim(bow *vocabulary);
+
+void bow_delete(bow *vocabulary);
 
 
 /* LOCAL (spec) functions */
@@ -59,9 +67,6 @@ int spec_bow_to_tf(bow* global, node *spec);
 
 
 /* TF-IDF phase */
-/* Scan though completed local bow_occurences array, texts[i]++ for every occurence[i] > 0 */
-int spec_update_texts(bow *global, node *spec);
-
 /* Updates tf_idf_factors: Multiply global idf factors with existing local tf vector */
 int spec_tf_idf(bow* global, node *spec);
 

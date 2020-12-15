@@ -4,12 +4,15 @@
 #include "vocabulary.h"
 
 /* TODO: if only stopwords, make this title more speicific */
-void preprocessing_init(char *stopwords_file);
-void preprocessing_destroy();
+int preprocessing_init(char *stopwords_file);
 
-/* Adds tokens of string to the Bag of Words
- * (only words with letters, not stopwords, not capitalized) */
-void bag_words(bow *vocabulary, char *str);
-void spec_bag_words(bow *global, node *spec, char *str);
+/* Put a whole spec in the Bag of Words (Part of creating the global vocabulary) */
+/* TODO: Change if spec fields change */
+int preprocessing_insert(bow *global, hashtable *fields);
+
+/* Prepare and make all local spec structures */
+int preprocessing_specs(hashtable *spec_ht, bow *global);
+
+void preprocessing_destroy();
 
 #endif /* PREPROCESSING_H */
