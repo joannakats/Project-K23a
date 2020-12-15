@@ -15,8 +15,6 @@ node *spec_init(char *id, hashtable *HSfields, int numOfFields) {
 	spec->clique = clique_init(spec);
 	spec->hasListOfClique = true; //initially every new spec node points to a cliqueNode
 
-	// printf("SPEC_INIT: HSfields = %p\n", HSfields);
-
 	spec->fields = HSfields; //set fields to the array that is already allocated and initialized
 	spec->fieldCount = numOfFields;
 

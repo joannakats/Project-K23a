@@ -27,7 +27,6 @@ static int parse_json_field(FILE *json, char *line, hashtable *fields, field **c
 	temp[0] = '\0';                  /* Cut property at the closing quote */
 
 	/* Set current field property and value count, initially = 1 */
-	// setField(current_field, 1, property);
 	*current_field = HSfield_insert(fields, property);
 
 	/* Find opening quote of value string */
