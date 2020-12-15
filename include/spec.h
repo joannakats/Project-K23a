@@ -11,6 +11,7 @@ typedef struct field {
 	char *property;
 	char **values;
 	int cnt; //counter of values stored for a certain property
+	struct field *next;
 } field;
 
 typedef struct node {

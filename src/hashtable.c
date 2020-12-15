@@ -38,7 +38,7 @@ node *search_hashTable_spec(hashtable* hsTable,char* id,int *pos){
 }
 
 
-/*The following function search for left and right spec.If both specs are found 
+/*The following function search for left and right spec.If both specs are found
 left spec will point to its list of clique nodes and right spec
 will point to left_spec's list of clique nodes */
 void hash_table_join(hashtable* hsTable,char* left_id,char* right_id){
@@ -52,6 +52,15 @@ void hash_table_join(hashtable* hsTable,char* left_id,char* right_id){
 }
 
 
+void hash_table_NOTjoin(hashtable* hsTable, char* left_id, char* right_id) {
+	int left_pos,right_pos;
+	node *left_spec = search_hashTable_spec(hsTable,left_id,&left_pos);
+	node *right_spec = search_hashTable_spec(hsTable,right_id,&right_pos);
+	if(left_pos!=-1 && right_pos!=-1) {
+				anti_clique_insert(left_spec,right_spec);
+	}
+	puts("hash_table_NOTjoin - END\n");
+}
 
 
 int delete_hashtable(hashtable *hsTable){
@@ -75,7 +84,7 @@ void print_hashTable(const hashtable *hsTable){
 				printf("\nSpec: %s \n",current->id);
 				if(current->hasListOfClique==true){
 					printf("Clique: ");
-					cliqueNode=current->clique;
+					cliqueNode=current->clique->head;
 					while(cliqueNode!=NULL){
 						printf("%s\n",cliqueNode->spec->id);
 						cliqueNode=cliqueNode->next;
@@ -99,7 +108,7 @@ void print_pairs(const hashtable *hsTable){
 				//printf("\nSpec: %s \n",current->id);
 				if(current->hasListOfClique==true){
 				//	printf("Clique: ");
-					cliqueLeft=current->clique;
+					cliqueLeft=current->clique->head;
 					while(cliqueLeft->next!=NULL){
 						cliqueRight=cliqueLeft->next;
 						while(cliqueRight!=NULL){

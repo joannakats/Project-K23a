@@ -40,6 +40,9 @@ void test_anti_clique_insert() {
 		TEST_CHECK(spec3->clique->NegCorrel->diff == spec2->clique);
 		TEST_CHECK(spec2->clique->NegCorrel->diff == spec3->clique);
 
+		//anti_clique_insert(spec1, spec3);
+
+
 
 		/* free memory allocated for this test */
 		delete_specNode(spec1);
@@ -80,7 +83,7 @@ void test_clique_rearrange(void) {
 	TEST_CHECK(hc->NegCorrel->diff == spec_a->clique);	//check if spec3 points to spec_a
 	TEST_CHECK(spec_a->clique->NegCorrel->diff == hc);	//check if spec_a points to spec3
 
-	// //create a negative correlation between spec_b & spec1
+	// // //create a negative correlation between spec_b & spec1
 	anti_clique_insert(spec_b, spec1);
 
 	// //merge spec2's clique with the tail's clique

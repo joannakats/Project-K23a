@@ -65,7 +65,7 @@ void setValue(field *f, int index, char *value) {
 	f->values[index] = strdup(value);
 }
 
-
+///////////////////////////////////////////////////////////////
 void deleteField(field f) {
 	free(f.property);
 	//free array of strings
@@ -74,7 +74,7 @@ void deleteField(field f) {
 	}
 	free(f.values);
 }
-
+//////////////////////////////////////////////////////////////
 
 /* inserts a spec into the overflow chain */
 node *spec_insert(node *head, char *id, field *fieldsArray, int numOfFields) {

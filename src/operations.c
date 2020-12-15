@@ -80,12 +80,12 @@ int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 		label = strtok_r(NULL, ",", &saveptr);
 
 		if (label[0] == '1') {
-			printf("%s,%s\n", left_spec, right_spec);
+			printf("HASH_TABLE_JOIN %s,%s\n", left_spec, right_spec);
 			hash_table_join(hash_table, left_spec, right_spec);
 		}
 		//TODO: Negative relations
-		//else
-		//	hash_table_NOTjoin(hash_table, left_spec, right_spec);
+		else
+			hash_table_NOTjoin(hash_table, left_spec, right_spec);
 	}
 
 	return 0;
@@ -167,7 +167,7 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 		fputs("Reading Dataset W...\n", stderr);
 		if (!(ret = parse_dataset_w(&hash_table, dataset_w))) {
 			fputs("Writing output csv...\n", stderr);
-			ret = print_pairs_csv(&hash_table, output);
+			//ret = print_pairs_csv(&hash_table, output);
 		}
 	}
 
