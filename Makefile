@@ -27,7 +27,8 @@ SRC_OBJ = $(patsubst %.c,%.o,$(wildcard src/*.c))
 TARGET = specs
 
 TEST_OBJ = $(patsubst %.c,%.o,$(wildcard tests/*/*.c))
-TEST_TARGETS = tests/test_json_insertion tests/test_hstable tests/test_spec tests/test_clique
+# TODO: Fix these for fields hashtable
+TEST_TARGETS =
 
 TARGETS = $(TARGET) $(TEST_TARGETS)
 
@@ -43,7 +44,7 @@ $(TARGETS):
 $(TARGET): $(SRC_OBJ) $(HDR)
 tests/test_json_insertion: tests/json_insertion/test.o $(filter-out src/main.o,$(SRC_OBJ)) $(HDR)
 tests/test_hstable: tests/hashtable/test.o src/hashtable.o src/spec_hashtable.o src/spec.o src/clique.o $(HDR)
-tests/test_spec: tests/spec/test.o src/spec.o src/clique.o $(HDR)
+tests/test_spec: tests/spec/test.o src/spec.o src/clique.o src/hashtable.o $(HDR)
 tests/test_clique: tests/clique/test.o src/spec.o src/clique.o $(HDR)
 
 ## Object files

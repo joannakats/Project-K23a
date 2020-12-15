@@ -18,8 +18,7 @@ int insert_dataset_x(hashtable *hash_table, char *dataset_x, bow *vocabulary) {
 	char path[1024], *extention;
 
 	char *spec_id;
-	int spec_field_count;
-	field *spec_fields;
+	hashtable *spec_fields = NULL;
 
 	if (!(dir = opendir(dataset_x))) {
 		perror(dataset_x);
@@ -47,16 +46,15 @@ int insert_dataset_x(hashtable *hash_table, char *dataset_x, bow *vocabulary) {
 				continue;
 			else if (strcmp(extention, ".json"))
 				continue;
-
-			read_spec_from_json(path, &spec_field_count, &spec_fields, vocabulary);
-
+;
+			read_spec_from_json(path, &spec_fields, vocabulary);
 			/* Create spec id (e.g. buy.net//10) */
 			sprintf(spec_id, "%s//%s", basename(dataset_x), dirent->d_name);
 			/* Remove extension to get final id */
 			*strrchr(spec_id, '.') = '\0';
 
 			/* Ready for hashtable insertion */
-			insert_entry(hash_table, spec_id, spec_fields, spec_field_count);
+			insert_entry(hash_table, spec_id, &spec_fields);
 		}
 	}
 
@@ -86,8 +84,8 @@ int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 
 		if (label[0] == '1')
 			hash_table_join(hash_table, left_spec, right_spec);
-		else /* label is 0: anti_clique time */
-			hash_table_notjoin(hash_table, left_spec, right_spec);
+		//else /* label is 0: anti_clique time */
+		//	hash_table_notjoin(hash_table, left_spec, right_spec);
 	}
 
 	return 0;
@@ -196,10 +194,11 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 		}
 	}
 
-	// TODO: Debug print global vocabulary
-	printf("Distinct Words: %d\n", vocabulary->ht.count);
-	for (int i = 0; i < vocabulary->ht.count; ++i)
-		printf("%s\t%d\n", vocabulary->words[i], vocabulary->occurrences[i]);
+	// // TODO: Debug print global vocabulary
+	// Preprocessing in later commit
+	// printf("Distinct Words: %d\n", vocabulary->ht.count);
+	// for (int i = 0; i < vocabulary->ht.count; ++i)
+	// 	printf("%s\t%d\n", vocabulary->words[i], vocabulary->occurrences[i]);
 
 	/* Cleanup */
 	preprocessing_destroy();

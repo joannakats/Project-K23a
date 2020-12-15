@@ -4,33 +4,89 @@
 #include "spec.h"
 #include "acutest.h"
 
+
+void test_field_init(void) {
+	/* allocate a fields hashtable for the test */
+	hashtable *hs = field_init(2);
+	TEST_CHECK(hs != NULL);
+	TEST_CHECK(hs->list != NULL);
+
+	char *prop1 = "page title";
+	char *prop2 = "card slot";
+	char *prop3 = "depth inches";
+
+	/* test initialization of fields */
+	field *f = HSfield_insert(hs, prop1);
+	TEST_CHECK(f != NULL);
+	setValue(f, "value for property 1");
+	TEST_CHECK(f->cnt == 1);
+	TEST_CHECK(f->values != NULL);
+	TEST_CHECK(f->values[0] != NULL);
+	TEST_CHECK(strcmp(f->values[0], "value for property 1") == 0);
+	setValue(f, "value for property 1 again");
+	TEST_CHECK(f->cnt == 2);
+	TEST_CHECK(f->values != NULL);
+	TEST_CHECK(f->values[1] != NULL);
+	TEST_CHECK(strcmp(f->values[1], "value for property 1 again") == 0);
+
+	field *f1 = HSfield_insert(hs, prop2);
+	setValue(f1, "value for property 2");
+	TEST_CHECK(f1->cnt == 1);
+	TEST_CHECK(f1->values != NULL);
+	TEST_CHECK(f1->values[0] != NULL);
+	TEST_CHECK(strcmp(f1->values[0], "value for property 2") == 0);
+
+	field *f2 = HSfield_insert(hs, prop3);
+	TEST_CHECK(f2 != NULL);
+	setValue(f2, "value for property 3");
+	TEST_CHECK(f2->cnt == 1);
+	TEST_CHECK(f2->values != NULL);
+	TEST_CHECK(f2->values[0] != NULL);
+	TEST_CHECK(strcmp(f2->values[0], "value for property 3") == 0);
+	setValue(f2, "value for property 3 again");
+	TEST_CHECK(f2->cnt == 2);
+	TEST_CHECK(f2->values != NULL);
+	TEST_CHECK(f2->values[1] != NULL);
+	TEST_CHECK(strcmp(f2->values[1], "value for property 3 again") == 0);
+
+	/* search property in the hashtable */
+	field *res = search_field(hs, prop2);
+	TEST_CHECK(res != NULL);
+	TEST_CHECK(strcmp(res->property, prop2)== 0);
+
+	res = search_field(hs, "jdfnsdkfs");
+	TEST_CHECK(res == NULL);
+
+	res = search_field(hs, prop1);
+	TEST_CHECK(res != NULL);
+	TEST_CHECK(strcmp(res->property, prop1)== 0);
+
+	res = search_field(hs, prop3);
+	TEST_CHECK(res != NULL);
+	TEST_CHECK(strcmp(res->property, prop3)== 0);
+
+	/* free memory allocated for this test */
+	deleteFields(hs);
+}
+
 void test_spec_insert(void) {
 	char *prop="This is a property.";
 	char *val="This a value.";
 	char *id="This is an id.";
 
+	hashtable *hs = field_init(2);
 	//we will try to insert 3 specs
 
 	/*  1st spec  */
-	field *arr1 = createFieldArray(1);
-	TEST_CHECK(arr1 != NULL);
-	setField(arr1, 1, prop);
-	//testing setField
-	TEST_CHECK(arr1->property != NULL && strcmp(arr1->property, prop) == 0);
-	TEST_CHECK(arr1->cnt == 1);
-	TEST_CHECK(arr1->values != NULL);
-	setValue(arr1, 0, val);
-	TEST_CHECK(arr1->values[0] != NULL && strcmp(arr1->values[0], val) == 0);
-
-	node *spec1 = spec_insert(NULL, id, arr1, 1);
+	node *spec1 = spec_insert(NULL, id, hs, 0);
 	//test spec_init
 	node *head = spec1;
 	TEST_CHECK(spec1 != NULL);
 	TEST_CHECK(spec1->id != NULL && strcmp(spec1->id, id) == 0);
-	TEST_CHECK(arr1 == spec1->fields);
+	TEST_CHECK(hs == spec1->fields);
 	TEST_CHECK(spec1->hasListOfClique == 1);
 	TEST_CHECK(spec1->next == NULL);
-	TEST_CHECK(spec1->fieldCount == 1);
+	TEST_CHECK(spec1->fieldCount == 0);
 	//see if clique_init() works as supposed to
 	TEST_CHECK(spec1->clique != NULL);
 	TEST_CHECK(spec1->clique->NegCorrel == NULL); //there souldn't exist a negative correlation
@@ -39,34 +95,15 @@ void test_spec_insert(void) {
 	TEST_CHECK(spec1->clique->head->next == NULL);
 
 	/*  2nd spec  */
-	field *arr2 = createFieldArray(2);
-	TEST_CHECK(arr2 != NULL);
-	setField(&arr2[0], 2, prop);
-	setField(&arr2[1], 1, prop);
-	//testing setField
-	for (int i=0; i<2; i++) {
-		TEST_CHECK(arr2[i].property != NULL && strcmp(arr2[i].property, prop) == 0);
-		TEST_CHECK(arr2[i].values != NULL);
-	}
-	TEST_CHECK(arr2[0].cnt == 2);
-	TEST_CHECK(arr2[1].cnt == 1);
-
-	setValue(&arr2[0], 0, val);
-	setValue(&arr2[0], 1, val);
-	TEST_CHECK(arr2[0].values[0] != NULL && strcmp(arr2[0].values[0], val) == 0);
-	TEST_CHECK(arr2[0].values[1] != NULL && strcmp(arr2[0].values[1], val) == 0);
-	setValue(&arr2[1], 0, val);
-	TEST_CHECK(arr2[1].values[0] != NULL && strcmp(arr2[1].values[0], val) == 0);
-
-	node *spec2 = spec_insert(head, id, arr2, 2);
+	node *spec2 = spec_insert(head, id, NULL, 2);
 	head = spec2;
 	//test spec_init
 	TEST_CHECK(spec2 != NULL);
 	TEST_CHECK(spec2->id != NULL && strcmp(spec2->id, id) == 0);
-	TEST_CHECK(arr2 == spec2->fields);
 	TEST_CHECK(spec2->hasListOfClique == 1);
 	TEST_CHECK(spec2->next == spec1);
 	TEST_CHECK(spec1->next == NULL);
+	TEST_CHECK(spec2->fields == NULL);
 	TEST_CHECK(spec2->fieldCount == 2);
 	//see if clique_init() works as supposed to
 	TEST_CHECK(spec2->clique != NULL);
@@ -75,26 +112,16 @@ void test_spec_insert(void) {
 	TEST_CHECK(spec2->clique->head->next == NULL);
 
 	/*  3rd spec  */
-	field *arr3 = createFieldArray(2);
-	TEST_CHECK(arr3 != NULL);
-	//testing setField
-	for (int i=0; i<2; i++) {
-		setField(&arr3[i], 2, prop);
-		TEST_CHECK(arr3[i].property != NULL && strcmp(arr3[i].property, prop) == 0);
-		TEST_CHECK(arr3[i].values != NULL);
-		TEST_CHECK(arr3[i].cnt == 2);
-		for (int j=0; j<2; j++) {
-			setValue(&arr3[i], j, val);
-			TEST_CHECK(arr3[i].values[j] != NULL && strcmp(arr3[i].values[j], val) == 0);
-		}
-	}
-
-	node *spec3 = spec_insert(head, id, arr3, 2);
+	hashtable *hS = field_init(2);
+	field *F = HSfield_insert(hS, prop);
+	setValue(F, val);
+	setValue(F,val);
+	node *spec3 = spec_insert(head, id, hS, 2);
 	head = spec3;
 	//test spec_init
 	TEST_CHECK(spec3 != NULL);
 	TEST_CHECK(spec3->id != NULL && strcmp(spec3->id, id) == 0);
-	TEST_CHECK(arr3 == spec3->fields);
+	TEST_CHECK(hS == spec3->fields);
 	TEST_CHECK(spec3->hasListOfClique == 1);
 	TEST_CHECK(spec3->fieldCount == 2);
 	//see if clique_init() works as supposed to
@@ -113,25 +140,14 @@ void test_spec_insert(void) {
 
 
 void test_search_spec(void) {
-	char *prop="This is a property.";
-	char *val="This a value.";
 	char id[3];
-
-	//create and initialize a field array
-	field *arr = createFieldArray(2);
-	for (int i=0; i<2; i++) {
-		setField(&arr[i], 2, prop);
-		for (int j=0; j<2; j++) {
-			setValue(&arr[i], j, val);
-		}
-	}
 
 	//create a list of specs
 	node *head = NULL;
 	node *tmp;
 	for (int i=1; i<10; i++) {
 		sprintf(id, "%d", i);
-		tmp = spec_insert(head, id, arr, 2);
+		tmp = spec_insert(head, id, NULL, 2);
 		head = tmp;
 	}
 
@@ -148,11 +164,6 @@ void test_search_spec(void) {
 	}
 
 	//free memory allocated for this test
-	//free field array
-	for(int i=0; i<2; i++) {
-		deleteField(arr[i]);
-	}
-	free(arr);
 	node *cur = head;
 	while(cur != NULL) {
 		tmp = cur;
@@ -168,6 +179,7 @@ void test_search_spec(void) {
 
 
 TEST_LIST = {
+	{"field_insertion", test_field_init},
 	{"spec_insertion", test_spec_insert},
 	{"spec_search", test_search_spec},
 	{NULL, NULL}

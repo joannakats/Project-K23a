@@ -3,9 +3,9 @@
 #include <string.h>
 #include "spec_hashtable.h"
 
-void insert_entry(hashtable* hsTable,char* id,field *fieldsArray,int numOfFields) {
+void insert_entry(hashtable* hsTable,char* id,hashtable **fields) {
 	int index = hash(id, hsTable->tableSize);
-	hsTable->list[index] = spec_insert(hsTable->list[index],id,fieldsArray,numOfFields);
+	hsTable->list[index] = spec_insert(hsTable->list[index],id,*fields);
 	hsTable->count++;
 }
 
