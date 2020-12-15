@@ -1,25 +1,5 @@
 #include "spec.h"
 
-// void print_list(node *head) {
-// 	node *current = head;
-// 	while(current != NULL) {
-// 		print_fields(current->fields, current->fieldCount);
-// 		current = current->next;
-// 	}
-// }
-//
-// void print_fields(field *array, int dim) {
-// 	for (int i = 0; i < dim; i++) {
-// 		printf("%s: ", array[i].property);
-// 		for (int j = 0; j < array[i].cnt; j++) {
-// 			printf("%s ", array[i].values[j]);
-// 		}
-// 		printf("\n");
-// 	}
-// 	printf("\n\n");
-// }
-
-
 /* creates the spec node and initializes its attrubutes */
 /* requirement: the arrays of fields, properties and values, have been allocated
 	 and initialized elsewhere */
@@ -63,7 +43,7 @@ hashtable *field_init(int size) {
 
 /* procedure that adds a field to the hashtable, more specifically
    inserts a field node and initializes property (values are not initialized yet)*/
-field *HSfield_insert(hashtable *hs, char *property/*, int size*/) {
+field *HSfield_insert(hashtable *hs, char *property) {
 	unsigned long index = hash(property, hs->tableSize);
 
 	field *f = malloc(sizeof(field)); //allocate memory for a field node
@@ -78,7 +58,7 @@ field *HSfield_insert(hashtable *hs, char *property/*, int size*/) {
 }
 
 
-void setValue(field *f,/* int size, */char *value) {
+void setValue(field *f, char *value) {
 	f->cnt++;	//increment counter of values
 	f->values = realloc(f->values, f->cnt * sizeof(char *)); //resize array of values
 
@@ -86,7 +66,7 @@ void setValue(field *f,/* int size, */char *value) {
 }
 
 
-///////////////////////////////////////////////////////////
+
 void deleteFieldNode(field *f) {
 	free(f->property);
 	//free array of strings
@@ -113,7 +93,7 @@ void deleteFields(hashtable *fields) {
 	free(fields->list);
 	free(fields);
 }
-///////////////////////////////////////////////////////////
+
 
 /* inserts a spec into the overflow chain */
 node *spec_insert(node *head, char *id, hashtable *fields, int numOfFields) {
@@ -126,7 +106,7 @@ node *spec_insert(node *head, char *id, hashtable *fields, int numOfFields) {
 
 
 /* frees memory allocated for a spec node */
-void delete_specNode(node *spec) {;
+void delete_specNode(node *spec) {
 	/* delete array of fields */
 	if (spec->fields != NULL) {
 		deleteFields(spec->fields);
@@ -172,7 +152,7 @@ node *search_spec(node *head, char *id, int *pos) {
 
 
 /* returns field node found in the hashtable  of fields in spec */
-field *search_field(hashtable *fields, char *property/*, int size*/) {
+field *search_field(hashtable *fields, char *property) {
 	unsigned long index = hash(property, fields->tableSize);
 
 	field *cur = fields->list[index];
