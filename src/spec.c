@@ -17,6 +17,9 @@ node *spec_init(char *id, hashtable *HSfields) {
 
 	spec->fields = HSfields; //set fields to the array that is already allocated and initialized
 
+	spec->bow_occurences = NULL;
+	spec->tf_idf_factors = NULL;
+
 	return spec;
 }
 
@@ -112,6 +115,13 @@ void delete_specNode(node *spec) {
 	}
 
 	free(spec->id);
+
+	if (spec->bow_occurences)
+		free(spec->bow_occurences);
+
+	if (spec->bow_occurences)
+		free(spec->tf_idf_factors);
+
 	free(spec);
 }
 

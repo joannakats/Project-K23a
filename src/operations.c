@@ -88,6 +88,7 @@ int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 
 		if (label[0] == '1')
 			hash_table_join(hash_table, left_spec, right_spec);
+		//TODO: Enable this with yeeted segfault
 		//else /* label is 0: anti_clique time */
 			//hash_table_notjoin(hash_table, left_spec, right_spec);
 	}
@@ -192,18 +193,17 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 	if (!(ret = insert_dataset_x(&hash_table, dataset_x, vocabulary))) {
 		// TODO: Remove debug print global vocabulary
 		printf("Distinct words: %d\n", vocabulary->ht.count);
-		for (int i = 0; i < vocabulary->ht.count; ++i)
-			printf("%s\t%d texts\n", vocabulary->words[i], vocabulary->texts[i]);
 
-		// TODO: Enable
-		// fputs("Preprocessing specs...\n", stderr);
-		// if (!(ret = preprocessing_specs(&hash_table, vocabulary))) {
-		// 	fputs("Reading Dataset W...\n", stderr);
-		// 	if (!(ret = parse_dataset_w(&hash_table, dataset_w, vocabulary))) {
-		// 		fputs("Writing output csv...\n", stderr);
-		// 		ret = print_pairs_csv(&hash_table, output);
-		// 	}
-		// }
+		fputs("Preprocessing specs...\n", stderr);
+		if (!(ret = preprocessing_specs(&hash_table, vocabulary))) {
+			printf("Distinct words after trim: %d\n", vocabulary->ht.count);
+
+			fputs("Reading Dataset W...\n", stderr);
+			if (!(ret = parse_dataset_w(&hash_table, dataset_w, vocabulary))) {
+				fputs("Writing output csv...\n", stderr);
+				ret = print_pairs_csv(&hash_table, output);
+			}
+		}
 	}
 
 	/* Cleanup */

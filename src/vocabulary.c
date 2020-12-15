@@ -6,7 +6,7 @@
 #include "common.h"
 #include "vocabulary.h"
 
-#define TRIM_THRESHOLD 100
+static double trim_threshold;
 
 bow *bow_init(int tableSize) {
 	bow *new = malloc(sizeof(*new));
@@ -83,77 +83,113 @@ int spec_has_word(bow *vocabulary, char *word, int **exists) {
 	return 0;
 }
 
-int bow_compute_idf(bow* global, hashtable *spec_ht){
+int bow_compute_idf(bow* global, hashtable *spec_ht) {
 	global->idf_factors=malloc(global->ht.count *sizeof(double));
 	int size=global->ht.count;
 	//for every word in global compute and write idf_factor
 	for(int i=0;i<size;i++){
-		global->idf_factors[i]=log(((double)spec_ht->count)/global->texts[i]);
+		global->idf_factors[i]=log10(((double)spec_ht->count)/global->texts[i]);
 	}
 
-	//TODO optional: free texts?
+	/* Ceiling for trimming words: being present in at least 75% of specs */
+	trim_threshold = log10(1.0 / 0.70);
+
 	return 0;
 }
 
+/* Judge whether this word is necessary */
+static int keep_word(bow *vocabulary, int index) {
+	return (vocabulary->idf_factors[index] > trim_threshold && vocabulary->texts[index] > 20);
+}
+
+/* Change the array index a bow->ht entry points to */
+static int bow_ht_update(bow *vocabulary, int old_index, int new_index) {
+	int ht_index;
+	bow_bucket *bucket;
+
+	ht_index = hash(vocabulary->words[old_index], vocabulary->ht.tableSize);
+
+	bucket = vocabulary->ht.list[ht_index];
+	while (bucket) {
+		if (bucket->index == old_index) {
+			bucket->index = new_index;
+			return 0;
+		}
+
+		bucket = bucket->next;
+	}
+
+	return -1;
+}
+
+/* Delete an entry from the bow->ht */
+static int bow_ht_delete(bow *vocabulary, int array_index) {
+	int ht_index;
+	bow_bucket *prev, *current;
+
+	/* Remove from hashtable */
+	ht_index = hash(vocabulary->words[array_index], vocabulary->ht.tableSize);
+
+	prev = NULL;
+	current = vocabulary->ht.list[ht_index];
+	while (current) {
+		if (current->index == array_index) {
+			/* If head of list, update ht->list */
+			if (prev)
+				prev->next = current->next;
+			else
+				vocabulary->ht.list[ht_index] = current->next;
+
+			free(current);
+			return 0;
+		}
+
+		prev = current;
+		current = current->next;
+	}
+
+	return -1;
+}
+
 int bow_trim(bow *vocabulary) {
-	int i, ht_index;
-	bow_bucket *previous, *current;
+	int i;
 
-	for (i = 0; i < vocabulary->ht.count; ++i) {
-		if (vocabulary->texts[i] < TRIM_THRESHOLD) {
-			/* Time to yeet this rarely used word */
+	/* Move desired elements from old to vocabulary, then free old */
+	bow old = *vocabulary;
 
-			/* Remove from hashtable */
-			ht_index = hash(vocabulary->words[i], vocabulary->ht.tableSize);
+	vocabulary->ht.count = 0;
+	vocabulary->words = NULL;
+	vocabulary->texts = NULL;
+	vocabulary->idf_factors = NULL;
 
-			previous = NULL;
-			current = vocabulary->ht.list[ht_index];
-			while (current) {
-				if (current->index == i) {
-					if (previous)
-						previous->next = current->next;
-					else
-						vocabulary->ht.list[ht_index] = current->next;
+	for (i = 0; i < old.ht.count; ++i) {
+		if (keep_word(&old, i)) {
+			/* Put word in new arrays */
+			vocabulary->ht.count++;
+			vocabulary->words = realloc(vocabulary->words, vocabulary->ht.count * sizeof(vocabulary->words[0]));
+			vocabulary->texts = realloc(vocabulary->texts, vocabulary->ht.count * sizeof(vocabulary->texts[0]));
+			vocabulary->idf_factors = realloc(vocabulary->idf_factors, vocabulary->ht.count * sizeof(vocabulary->idf_factors[0]));
 
-					free(current);
-					break;
-				}
+			vocabulary->words[vocabulary->ht.count - 1] = old.words[i];
+			vocabulary->texts[vocabulary->ht.count - 1] = old.texts[i];
+			vocabulary->idf_factors[vocabulary->ht.count - 1] = old.idf_factors[i];
 
-				previous = current;
-				current = current->next;
-			}
-
-			if (!current)
-				return -1;
-
-			/* Replace with last element in array */
-			free(vocabulary->words[i]);
-
-			vocabulary->ht.count--;
-			vocabulary->words[i] = vocabulary->words[vocabulary->ht.count];
-			vocabulary->texts[i] = vocabulary->texts[vocabulary->ht.count];
-
-			/* Update index of last element in array */
-			ht_index = hash(vocabulary->words[i], vocabulary->ht.tableSize);
-
-			current = vocabulary->ht.list[ht_index];
-			while (current) {
-				if (current->index == vocabulary->ht.count) {
-					current->index = i;
-					break;
-				}
-
-				current = current->next;
-			}
-
-			if (!current)
-				return -1;
+			/* Update old hashtable entry
+			 * (ht will be copied to vocabulary later) */
+			bow_ht_update(&old, i, vocabulary->ht.count - 1);
+		} else {
+			/* Remove old hashtable entry */
+			bow_ht_delete(&old, i);
+			free(old.words[i]);
 		}
 	}
 
-	/* Shrink allocated memory */
-	vocabulary->words = realloc(vocabulary->words, vocabulary->ht.count * sizeof(vocabulary->words[0]));
-	vocabulary->texts = realloc(vocabulary->texts, vocabulary->ht.count * sizeof(vocabulary->texts[0]));
+	/* ht list already updated in old */
+	vocabulary->ht.list = old.ht.list;
+
+	free(old.words);
+	free(old.texts);
+	free(old.idf_factors);
 
 	return 0;
 }

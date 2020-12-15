@@ -41,9 +41,9 @@ int preprocessing_init(char *stopwords_file) {
  * - Like strtok_r(), if str is NULL, parsing continues from saveptr
  * - Like fgets(), takes pointer to buffer (word) allocated outside of the
  *   function and returns pointer to it, if word wsas found, otherwise NULL */
-static char *get_next_word(char *str, char *word, char **saveptr) {
+char *get_next_word(char *str, char *word, char **saveptr) {
 	char *a, *b, *c;
-	int has_letters = 0;
+	int has_letters;
 	int len;
 
 	/* If given str, this is the start of the string */
@@ -54,6 +54,8 @@ static char *get_next_word(char *str, char *word, char **saveptr) {
 
 	/* Run up to the null byte */
 	for (; *a; a = b) {
+		has_letters = 0;
+
 		/* Find word boundaries [A, B] */
 		for (; !isalnum(*a); ++a) {
 			/* Exhausted string without finding a valid word ? */
@@ -169,15 +171,15 @@ int preprocessing_specs(hashtable *spec_ht, bow *global) {
 	node *spec;
 
 	/* Finalize global vocabulary */
-	bow_trim(global);
 	bow_compute_idf(global, spec_ht);
+	bow_trim(global);
 
 	for (i = 0; i < spec_ht->tableSize; ++i) {
 		spec = spec_ht->list[i];
 
 		while (spec) {
 			//TODO remove
-			printf("Doing %s\n", spec->id);
+			//printf("Doing %s\n", spec->id);
 
 			/* BoW model */
 			spec_bow_occurences_init(global, spec);

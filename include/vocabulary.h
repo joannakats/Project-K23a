@@ -44,7 +44,11 @@ int spec_has_word(bow *vocabulary, char *word, int **exists);
 /* Computes and writes global->idf_factors, unique to each word (Uses texts and spec_ht->count) */
 int bow_compute_idf(bow* global, hashtable *spec_ht);
 
-/* Discard words that don't meet a certain "popularity" threshold */
+/* Discard words that don't meet a certain "popularity" threshold.
+ * Trimming works as follows:
+ * Make new parallel arrays that only incorporate the word entries that pass
+ * though the keep_word() filter. The objective is to achieve a smaller memory
+ * footprint for the vocabulary */
 int bow_trim(bow *vocabulary);
 
 void bow_delete(bow *vocabulary);

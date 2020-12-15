@@ -26,14 +26,14 @@ HDR = $(wildcard include/*.h)
 SRC_OBJ = $(patsubst %.c,%.o,$(wildcard src/*.c))
 TARGET = specs
 
+# TODO: Fix TESTS for fields hashtable
 TEST_OBJ = $(patsubst %.c,%.o,$(wildcard tests/*/*.c))
-# TODO: Fix these for fields hashtable
-TEST_TARGETS =
+TEST_TARGETS = tests/test_json_insertion tests/test_hstable tests/test_spec tests/test_clique
 
 TARGETS = $(TARGET) $(TEST_TARGETS)
 
 # Compilation
-all: $(TARGETS)
+all: $(TARGET)
 tests: $(TEST_TARGETS)
 
 ## Compilation recipe for executables (common)
