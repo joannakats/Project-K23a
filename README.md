@@ -25,4 +25,4 @@ To run the testing executables, (found in tests/), run `make check`.
 * It is assumed that within the directory of `Dataset X`, there will be only site folders (e.g. www.ebay.com) and .json files.
 * The way we print the cliques as distinct pairs of specs is outlined in `print_pairs()`, within [hashtable.c](./src/hashtable.c). There was a discussion on this in [this Piazza question](https://piazza.com/class/kfduqabor94zw?cid=11) and verbally, in the weekly Zoom meetings.
 * The program outputs to stdout by default, which is also suggested in the aforementioned Piazza discussion. Use `-o somefile.csv` or redirection, to point the data elsewhere.
-* Stopword list: [NLTK's list of english stopwords](https://gist.github.com/sebleier/554280)
+* Stopword list: [english.txt](https://github.com/Alir3z4/stop-words/blob/master/english.txt) from [Alir3z4/stop-words](https://github.com/Alir3z4/stop-words).
