@@ -38,7 +38,7 @@ node *spec_init(char *id, hashtable *HSfields, int numOfFields);
 // void setField(field *field, int numOfValues, char *property);
 // void setValue(field *f, int index, char *value);
 hashtable *field_init(int size);
-field *HSfield_insert(hashtable *hs, char *property, int size);
+field *HSfield_insert(hashtable *hs, char *property/*, int size*/);
 void setValue(field *f, char *value);
 void deleteFieldNode(field *f);
 void deleteFields(hashtable *hs);
@@ -46,5 +46,5 @@ node *spec_insert(node *head, char *id, hashtable *fields, int numOfFields);
 void delete_specNode(node *spec);
 void delete_specList(node *head);
 node *search_spec(node *head, char *id, int *pos);
-field *search_field(hashtable *fields, char *property, int size);
+field *search_field(hashtable *fields, char *property/*, int size*/);
 #endif

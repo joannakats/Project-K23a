@@ -16,7 +16,7 @@ void test_field_init(void) {
 	char *prop3 = "depth inches";
 
 	/* test initialization of fields */
-	field *f = HSfield_insert(hs, prop1, 2);
+	field *f = HSfield_insert(hs, prop1);
 	TEST_CHECK(f != NULL);
 	setValue(f, "value for property 1");
 	TEST_CHECK(f->cnt == 1);
@@ -29,14 +29,14 @@ void test_field_init(void) {
 	TEST_CHECK(f->values[1] != NULL);
 	TEST_CHECK(strcmp(f->values[1], "value for property 1 again") == 0);
 
-	field *f1 = HSfield_insert(hs, prop2, 2);
+	field *f1 = HSfield_insert(hs, prop2);
 	setValue(f1, "value for property 2");
 	TEST_CHECK(f1->cnt == 1);
 	TEST_CHECK(f1->values != NULL);
 	TEST_CHECK(f1->values[0] != NULL);
 	TEST_CHECK(strcmp(f1->values[0], "value for property 2") == 0);
 
-	field *f2 = HSfield_insert(hs, prop3, 2);
+	field *f2 = HSfield_insert(hs, prop3);
 	TEST_CHECK(f2 != NULL);
 	setValue(f2, "value for property 3");
 	TEST_CHECK(f2->cnt == 1);
@@ -50,18 +50,18 @@ void test_field_init(void) {
 	TEST_CHECK(strcmp(f2->values[1], "value for property 3 again") == 0);
 
 	/* search property in the hashtable */
-	field *res = search_field(hs, prop2, 2);
+	field *res = search_field(hs, prop2);
 	TEST_CHECK(res != NULL);
 	TEST_CHECK(strcmp(res->property, prop2)== 0);
 
-	res = search_field(hs, "jdfnsdkfs", 2);
+	res = search_field(hs, "jdfnsdkfs");
 	TEST_CHECK(res == NULL);
 
-	res = search_field(hs, prop1, 2);
+	res = search_field(hs, prop1);
 	TEST_CHECK(res != NULL);
 	TEST_CHECK(strcmp(res->property, prop1)== 0);
 
-	res = search_field(hs, prop3, 2);
+	res = search_field(hs, prop3);
 	TEST_CHECK(res != NULL);
 	TEST_CHECK(strcmp(res->property, prop3)== 0);
 
@@ -113,7 +113,7 @@ void test_spec_insert(void) {
 
 	/*  3rd spec  */
 	hashtable *hS = field_init(2);
-	field *F = HSfield_insert(hS, prop, 2);
+	field *F = HSfield_insert(hS, prop);
 	setValue(F, val);
 	setValue(F,val);
 	node *spec3 = spec_insert(head, id, hS, 2);

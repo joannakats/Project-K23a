@@ -63,8 +63,8 @@ hashtable *field_init(int size) {
 
 /* procedure that adds a field to the hashtable, more specifically
    inserts a field node and initializes property (values are not initialized yet)*/
-field *HSfield_insert(hashtable *hs, char *property, int size) {
-	unsigned long index = hash(property, size);
+field *HSfield_insert(hashtable *hs, char *property/*, int size*/) {
+	unsigned long index = hash(property, hs->tableSize);
 
 	field *f = malloc(sizeof(field)); //allocate memory for a field node
 	f->property = strdup(property);
@@ -172,8 +172,8 @@ node *search_spec(node *head, char *id, int *pos) {
 
 
 /* returns field node found in the hashtable  of fields in spec */
-field *search_field(hashtable *fields, char *property, int size) {
-	unsigned long index = hash(property, size);
+field *search_field(hashtable *fields, char *property/*, int size*/) {
+	unsigned long index = hash(property, fields->tableSize);
 
 	field *cur = fields->list[index];
 	while(cur != NULL) {
