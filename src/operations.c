@@ -195,7 +195,7 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 		printf("Distinct words: %d\n", vocabulary->ht.count);
 
 		fputs("Preprocessing specs...\n", stderr);
-		if (!(ret = preprocessing_specs(&hash_table, vocabulary))) {
+		if (!(ret = preprocessing_specs(&hash_table, vocabulary, true))) {
 			printf("Distinct words after trim: %d\n", vocabulary->ht.count);
 
 			fputs("Reading Dataset W...\n", stderr);

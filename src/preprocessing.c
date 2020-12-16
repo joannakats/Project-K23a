@@ -29,7 +29,7 @@ int preprocessing_init(char *stopwords_file) {
 	return 0;
 }
 
-/* Populate the global vocabulary with words:
+/* Get next valid word from string.
  * Words are strings that
  * - are delimited by non-alphanumeric characters (e.g. whitespace, symbols)
  * - are returned in lowercase
@@ -41,7 +41,7 @@ int preprocessing_init(char *stopwords_file) {
  * - Like strtok_r(), if str is NULL, parsing continues from saveptr
  * - Like fgets(), takes pointer to buffer (word) allocated outside of the
  *   function and returns pointer to it, if word wsas found, otherwise NULL */
-char *get_next_word(char *str, char *word, char **saveptr) {
+static char *get_next_word(char *str, char *word, char **saveptr) {
 	char *a, *b, *c;
 	int has_letters;
 	int len;
@@ -166,13 +166,15 @@ static void spec_bag_words(bow *global, node *spec) {
 	}
 }
 
-int preprocessing_specs(hashtable *spec_ht, bow *global) {
+int preprocessing_specs(hashtable *spec_ht, bow *global, bool trim) {
 	int i;
 	node *spec;
 
 	/* Finalize global vocabulary */
 	bow_compute_idf(global, spec_ht);
-	bow_trim(global);
+
+	if (trim)
+		bow_trim(global);
 
 	for (i = 0; i < spec_ht->tableSize; ++i) {
 		spec = spec_ht->list[i];

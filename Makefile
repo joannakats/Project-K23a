@@ -26,14 +26,15 @@ HDR = $(wildcard include/*.h)
 SRC_OBJ = $(patsubst %.c,%.o,$(wildcard src/*.c))
 TARGET = specs
 
-# TODO: Fix TESTS for fields hashtable
 TEST_OBJ = $(patsubst %.c,%.o,$(wildcard tests/*/*.c))
-TEST_TARGETS = tests/test_json_insertion tests/test_hstable tests/test_spec tests/test_clique
+# TODO: Fix TESTS for fields hashtable
+TEST_TARGETS = tests/test_vocabulary
+#tests/test_json_insertion tests/test_hstable tests/test_spec tests/test_clique
 
 TARGETS = $(TARGET) $(TEST_TARGETS)
 
 # Compilation
-all: $(TARGET)
+all: $(TARGETS)
 tests: $(TEST_TARGETS)
 
 ## Compilation recipe for executables (common)
@@ -43,8 +44,9 @@ $(TARGETS):
 ## Specific dependencies for executables (object files + $(HDR))
 $(TARGET): $(SRC_OBJ) $(HDR)
 tests/test_json_insertion: tests/json_insertion/test.o $(filter-out src/main.o,$(SRC_OBJ)) $(HDR)
+tests/test_vocabulary: tests/vocabulary/test.o src/hashtable.o src/spec_hashtable.o src/spec.o src/clique.o src/preprocessing.o src/vocabulary.o $(HDR)
 tests/test_hstable: tests/hashtable/test.o src/hashtable.o src/spec_hashtable.o src/spec.o src/clique.o $(HDR)
-tests/test_spec: tests/spec/test.o src/spec.o src/clique.o src/hashtable.o $(HDR)
+tests/test_spec: tests/spec/test.o src/hashtable.o src/spec.o src/clique.o  $(HDR)
 tests/test_clique: tests/clique/test.o src/spec.o src/clique.o $(HDR)
 
 ## Object files

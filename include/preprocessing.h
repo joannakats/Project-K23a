@@ -11,7 +11,7 @@ int preprocessing_init(char *stopwords_file);
 int preprocessing_insert(bow *global, hashtable *fields);
 
 /* Prepare and make all local spec structures */
-int preprocessing_specs(hashtable *spec_ht, bow *global);
+int preprocessing_specs(hashtable *spec_ht, bow *global, bool trim);
 
 void preprocessing_destroy();
 
