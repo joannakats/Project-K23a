@@ -78,7 +78,7 @@ void test_spec_insert(void) {
 	//we will try to insert 3 specs
 
 	/*  1st spec  */
-	node *spec1 = spec_insert(NULL, id, hs, 0);
+	node *spec1 = spec_insert(NULL, id, hs);
 	//test spec_init
 	node *head = spec1;
 	TEST_CHECK(spec1 != NULL);
@@ -86,7 +86,7 @@ void test_spec_insert(void) {
 	TEST_CHECK(hs == spec1->fields);
 	TEST_CHECK(spec1->hasListOfClique == 1);
 	TEST_CHECK(spec1->next == NULL);
-	TEST_CHECK(spec1->fieldCount == 0);
+	TEST_CHECK(spec1->fields->count == 0);
 	//see if clique_init() works as supposed to
 	TEST_CHECK(spec1->clique != NULL);
 	TEST_CHECK(spec1->clique->NegCorrel == NULL); //there souldn't exist a negative correlation
@@ -95,7 +95,7 @@ void test_spec_insert(void) {
 	TEST_CHECK(spec1->clique->head->next == NULL);
 
 	/*  2nd spec  */
-	node *spec2 = spec_insert(head, id, NULL, 2);
+	node *spec2 = spec_insert(head, id, NULL);
 	head = spec2;
 	//test spec_init
 	TEST_CHECK(spec2 != NULL);
@@ -104,7 +104,6 @@ void test_spec_insert(void) {
 	TEST_CHECK(spec2->next == spec1);
 	TEST_CHECK(spec1->next == NULL);
 	TEST_CHECK(spec2->fields == NULL);
-	TEST_CHECK(spec2->fieldCount == 2);
 	//see if clique_init() works as supposed to
 	TEST_CHECK(spec2->clique != NULL);
 	TEST_CHECK(spec2->clique->NegCorrel == NULL);
@@ -116,14 +115,17 @@ void test_spec_insert(void) {
 	field *F = HSfield_insert(hS, prop);
 	setValue(F, val);
 	setValue(F,val);
-	node *spec3 = spec_insert(head, id, hS, 2);
+	node *spec3 = spec_insert(head, id, hS);
 	head = spec3;
 	//test spec_init
 	TEST_CHECK(spec3 != NULL);
 	TEST_CHECK(spec3->id != NULL && strcmp(spec3->id, id) == 0);
 	TEST_CHECK(hS == spec3->fields);
 	TEST_CHECK(spec3->hasListOfClique == 1);
-	TEST_CHECK(spec3->fieldCount == 2);
+	// get field node
+	F = search_field(hS, prop);
+	TEST_CHECK(F != NULL);
+	TEST_CHECK(F->cnt == 2);
 	//see if clique_init() works as supposed to
 	TEST_CHECK(spec3->clique != NULL);
 	TEST_CHECK(spec3->clique->NegCorrel == NULL);
@@ -147,7 +149,7 @@ void test_search_spec(void) {
 	node *tmp;
 	for (int i=1; i<10; i++) {
 		sprintf(id, "%d", i);
-		tmp = spec_insert(head, id, NULL, 2);
+		tmp = spec_insert(head, id, NULL);
 		head = tmp;
 	}
 

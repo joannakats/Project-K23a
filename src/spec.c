@@ -50,7 +50,7 @@ field *HSfield_insert(hashtable *hs, char *property) {
 	f->next = hs->list[index];
 	hs->list[index] = f;
 
-	hs->count++;
+	hs->count++;	//increment counter of fields
 
 	return f;
 }

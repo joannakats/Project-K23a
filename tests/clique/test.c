@@ -9,9 +9,9 @@ void test_anti_clique_insert() {
 		char *id1 = "This is id1", *id2 = "This is id2", *id3 = "This is id3";
 
 		/* initialize specs*/
-		spec1 = spec_init(id1, NULL, 0);
-		spec2 = spec_init(id2, NULL, 0);
-		spec3 = spec_init(id3, NULL, 0);
+		spec1 = spec_init(id1, NULL);
+		spec2 = spec_init(id2, NULL);
+		spec3 = spec_init(id3, NULL);
 
 		/* create a negative correlation between spec1 & spec2 */
 		anti_clique_insert(spec1, spec2);
@@ -40,9 +40,6 @@ void test_anti_clique_insert() {
 		TEST_CHECK(spec3->clique->NegCorrel->diff == spec2->clique);
 		TEST_CHECK(spec2->clique->NegCorrel->diff == spec3->clique);
 
-		//anti_clique_insert(spec1, spec3);
-
-
 
 		/* free memory allocated for this test */
 		delete_specNode(spec1);
@@ -56,21 +53,20 @@ void test_clique_rearrange(void) {
 	clique *hc, *s1c, *s2c;
 
 	//make a list of three specs
-	spec1 = spec_insert(NULL, "1", NULL, 0);
-	spec2 = spec_insert(spec1, "2", NULL, 0);
-	spec3 = spec_insert(spec2, "3", NULL, 0);
+	spec1 = spec_insert(NULL, "1", NULL);
+	spec2 = spec_insert(spec1, "2", NULL);
+	spec3 = spec_insert(spec2, "3", NULL);
 
 	//initialize spec_a & spec_b
-	spec_a = spec_init("a", NULL, 0);
-	spec_b = spec_init("b", NULL, 0);
-	spec_c = spec_init("c", NULL, 0);
-	spec_d = spec_init("d", NULL, 0);
+	spec_a = spec_init("a", NULL);
+	spec_b = spec_init("b", NULL);
+	spec_c = spec_init("c", NULL);
+	spec_d = spec_init("d", NULL);
 
 	//create a negative correlation between spec2 & spec_a
 	anti_clique_insert(spec2, spec_a);
 
 	// //merge spec2's clique with head's clique
-	// printf("\tFIRST CLIQUE REARRANGE\n");
 	clique_rearrange(spec3, spec2);
 	hc = spec3->clique;
 	s2c = spec2->clique;
@@ -90,7 +86,6 @@ void test_clique_rearrange(void) {
 	anti_clique_insert(spec_b, spec1);
 
 	//merge spec2's clique with the tail's clique
-	// printf("\tSECOND CLIQUE REARRANGE\n");
 	clique_rearrange(spec1, spec2);
 	hc = spec3->clique;
 	s1c = spec1->clique;
