@@ -4,7 +4,6 @@
 /* allocates memory for the clique node and initializes its attributes */
 clique *clique_init(node *spec) {
 	clique *c = malloc(sizeof(clique));
-	// printf("@@@clique_init = %p\n", c);
 	c->NegCorrel = NULL;
 	c->head = malloc(sizeof(cliqueNode));
 
@@ -39,16 +38,79 @@ void anti_clique_insert(node *spec1, node *spec2) {
 /* allocates memory for anti_clique structure and initializes */
 anti_clique *anti_clique_init(clique *c, anti_clique *head) {
 	anti_clique *ac = malloc(sizeof(anti_clique));
-	// printf("@@@@anti_clique_init = %p \n", ac);
 	ac->next = head;
 	ac->diff = c;
 	return ac;
 }
 
 
+
+void remove_duplicates(anti_clique *ac, clique *c1) {
+	anti_clique *temp = ac;
+	anti_clique *prev;
+	int cnt;
+
+	/* traverse list of anti_clique nodes */
+	while (temp != NULL) {
+		clique *another = temp->diff;
+		anti_clique *ac_node = another->NegCorrel;
+		cnt = 0;
+		prev = NULL;
+
+		/* traverse list of another's clique anti_clique nodes */
+		while(ac_node != NULL) {
+			if(ac_node->diff == c1) {
+				cnt++;
+				if(cnt > 1) {
+					/* remove node */
+					prev->next = ac_node->next;
+					ac_node->next = NULL;
+					ac_node->diff = NULL;
+					free(ac_node);
+					ac_node = prev;
+					cnt--;
+				}
+			}
+
+			prev = ac_node;
+			ac_node = ac_node->next;
+		}
+
+		temp = temp->next;
+	}
+}
+
+
+void remove_merge_duplicates(anti_clique *ac) {
+	anti_clique *temp = ac;
+	anti_clique *temp1, *prev;
+
+	while (temp != NULL) {
+		temp1 = temp->next;
+		prev = temp;
+
+		while(temp1 != NULL) {
+			if (temp->diff == temp1->diff) {
+				/* remove this anti_clique nodes */
+				prev->next = temp1->next;
+				temp1->next = NULL;
+				temp1->diff = NULL;
+				free(temp1);
+				temp1 = prev;
+			}
+
+			prev = temp1;
+			temp1 = temp1->next;
+		}
+
+		temp = temp->next;
+	}
+}
+
+
 /* requirement: spec1 and spec2 are alike */
-/* after the execution of this function spec1 will point to its list of clique nodes and spec2
-	will point to spec1's list of clique nodes */
+/* after the execution of this function spec1 will point to its clique and spec2 to spec1's clique */
+/* lists consisted of cliqueNode type nodes and anti_clique type nodes will be merged into spec1's clique lists */
 void clique_rearrange(node *spec1, node *spec2) {
 	cliqueNode *temp = spec1->clique->head;
 	anti_clique *ac1 = spec1->clique->NegCorrel;
@@ -67,9 +129,6 @@ void clique_rearrange(node *spec1, node *spec2) {
 
 	/* Attach spec2's clique to that tail */
 	temp->next = spec2->clique->head;
-	//delete memory pointed by spec2's clique (we don't need it since 2 cliques merged)
-	//printf("spec2->clique = %p\n", spec2->clique);
-	//free(spec2->clique);
 
 	/* Update the specs in that clique to point to the
 	 * newly unified spec1 clique */
@@ -82,7 +141,6 @@ void clique_rearrange(node *spec1, node *spec2) {
 	/* ----------------------------anti-clique merging-------------------------------- */
 	anti_clique *tmp = NULL;
 	if (ac2 != NULL) {
-		printf("~~~~~~~~~~~~~~~~~AC2 != NULL~~~~~~~~~~~~~~~~\n");
 		if (ac1 != NULL) {
 
 			/* find tail of spec1's anti-clique list */
@@ -99,72 +157,19 @@ void clique_rearrange(node *spec1, node *spec2) {
 		}
 
 		/* negative correlation is a two-way relation */
-		anti_clique *other, *prev;
-		other = NULL;
 
 		/* make sure the cliques that are negatively correlated with spec2->clique
 		   also point to spec1->clique */
 		while (tmp != NULL) {
 			anti_clique *cur = tmp->diff->NegCorrel;
-			printf("\tTMP = %p\n", tmp);
-			prev = 	NULL;
-
-			bool flag1, flag2;
-			flag1 = flag2 = false;
 
 			/* traverse tmp->diff's anti_clique list */
 			while(cur != NULL) {
-				printf("CUR = %p\n", cur);
 				/* find the anti_clique node that points to spec2->clique */
 	 			if (cur->diff == clique2) {
-					printf("FOUND CLIQUE2 - REPLACE\n");
 					cur->diff = spec1->clique; //replace pointer with spec1's clique
-					// prev = cur;
-					// cur = cur->next;
-					// continue;
-				} else
-
-				/* check if this clique already points to spec1's clique, if so then
-				 remove this anti_clique node */
-				if (cur->diff == clique1) {
-					flag2 = true;
-					other = cur;	//hold this anti_clique node
-
-					//if it's the head of the anti_clique list that needs to be removed
-					if(tmp->diff->NegCorrel == cur) {
-						tmp->diff->NegCorrel = cur->next;	//assign as head next node
-						// prev = NULL;
-						cur = cur->next;
-						prev = NULL;
-						printf("HEAD\tDELETE OTHER = %p\n", other);
-						other->diff = NULL;
-						other->next = NULL;
-						free(other);
-						// other = NULL;
-						printf("\tEND - HEAD\n");
-					 	continue;/////////////
-					}
-					else {
-						prev->next = cur->next;
-						// cur = cur->next;
-						printf("NOT HEAD\tDELETE OTHER = %p\n", other);
-						other->diff = NULL;
-						other->next = NULL;
-						free(other);
-						// other = NULL;
-						cur = prev;
-						printf("\tEND -NOT HEAD\n");
-						// continue;
-
-					}
-					// continue;
 				}
 
-				// if (flag1 == true && flag2 == true) {	//just in case there is nothing else to be done for this anti_clique list break
-				// 	break;
-				// }
-				prev = cur;
-				puts("END OF CUR LOOP\n");
 				cur = cur->next;
 			}
 
@@ -172,33 +177,16 @@ void clique_rearrange(node *spec1, node *spec2) {
 		}
 
 
-		/* check for duplicates */
-	// 	tmp = spec1->clique->NegCorrel;
-	// 	other = NULL;
-	// 	while(tmp != NULL) {
-	// 		anti_clique *tmp1;
-	// 		tmp1 = tmp->next;
-	//
-	// 		while (tmp1 != NULL) {
-	// 			if(tmp->diff == tmp1->diff) {
-	// 				/* remove duplicate tmp1 anti_clique*/
-	// 				other = tmp1;
-	// 				tmp->next = tmp1->next;
-	// 				free(other);
-	// 				tmp1 = tmp->next;
-	// 				continue;
-	// 			}
-	//
-	// 			tmp1 = tmp1->next;
-	// 		}
-	//
-	// 		tmp = tmp->next;
-	// 	}
-	//
+		/* make sure that the anti_clique nodes of the cliques, that the nodes of spec2's clique point to,
+		   point only once to clique1  */
+		remove_duplicates(ac2, clique1);
+
+		/* make sure that the new anti_clique list does not point to the same clique more than once */
+		remove_merge_duplicates(spec1->clique->NegCorrel);
 	}
 
-	printf("FREEING CLIQUE2 = %p\n", clique2);
-	//free(clique2);
+	/* two cliques merged we don't need spec2's clique, free memory */
+	free(clique2);
 }
 
 
