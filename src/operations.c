@@ -79,7 +79,7 @@ int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 			return errno;
 		}
 
-		//TODO remove debug:
+		//DEBUG:
 		//puts(line);
 
 		left_spec = strtok_r(line, ",", &saveptr);
@@ -90,6 +90,8 @@ int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 			hash_table_join(hash_table, left_spec, right_spec);
 		else /* label is 0: anti_clique time */
 			hash_table_notjoin(hash_table, left_spec, right_spec);
+
+		// TODO: insert spec1, spec2, label in Logistic Regression model
 	}
 
 	return 0;
@@ -190,7 +192,7 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 
 	fputs("Reading Dataset X...\n", stderr);
 	if (!(ret = insert_dataset_x(&hash_table, dataset_x, vocabulary))) {
-		// TODO: Remove debug print global vocabulary
+		// DEBUG: print global vocabulary size
 		printf("Distinct words: %d\n", vocabulary->ht.count);
 
 		fputs("Preprocessing specs...\n", stderr);

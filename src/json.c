@@ -79,7 +79,7 @@ int read_spec_from_json(char *path, hashtable **spec_fields) {
 	char *line;
 	//int error = 0;
 
-	// TODO: Remove Debug: Print json being parsed
+	// DEBUG: Print json being parsed
 	//printf("%s\n", path);
 
 	/* Initialize hashtable of fields and counter */
@@ -106,11 +106,6 @@ int read_spec_from_json(char *path, hashtable **spec_fields) {
 		// }
 
 		parse_json_field(json, line, *spec_fields);
-
-		/* Add field to global vocabulary (making a vector) */
-		// bag_of_words(current_field->property, vocabulary);
-		// for (int i = 0; i < current_field->cnt; ++i)
-		// 	bag_of_words(current_field->values[i], vocabulary);
 	}
 
 	fclose(json);

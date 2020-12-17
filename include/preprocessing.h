@@ -7,7 +7,6 @@
 int preprocessing_init(char *stopwords_file);
 
 /* Put a whole spec in the Bag of Words (Part of creating the global vocabulary) */
-/* TODO: Change if spec fields change */
 int preprocessing_insert(bow *global, hashtable *fields);
 
 /* Prepare and make all local spec structures */

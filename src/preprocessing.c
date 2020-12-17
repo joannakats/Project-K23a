@@ -180,7 +180,7 @@ int preprocessing_specs(hashtable *spec_ht, bow *global, bool trim) {
 		spec = spec_ht->list[i];
 
 		while (spec) {
-			//TODO remove
+			//DEBUG: current thing we're preprocessing
 			//printf("Doing %s\n", spec->id);
 
 			/* BoW model */

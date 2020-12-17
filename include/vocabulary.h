@@ -13,8 +13,9 @@ typedef struct bow_bucket {
  * word on all the specs. Conceptually, it's on the same level as the spec hashtable:
  * Project-wide.
  * It has parallel indexed arrays of
- * - the distinct words in all the specs
- * - the occurence of these words globally
+ * - the distinct words[0...count] in all the specs
+ * - the amount of texts[0...count] that contain each word
+ * - the idf factor of each word
  * and a hashtable that can be used to find the index of a word in said arrays,
  * in an associative manner.
  *
@@ -73,7 +74,5 @@ int spec_bow_to_tf(bow* global, node *spec);
 /* TF-IDF phase */
 /* Updates tf_idf_factors: Multiply global idf factors with existing local tf vector */
 int spec_tf_idf(bow* global, node *spec);
-
-/* TODO: delete this = free the arrays in spec_delete */
 
 #endif /* VOCABULARY_H */
