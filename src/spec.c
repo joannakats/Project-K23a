@@ -91,7 +91,7 @@ void deleteFields(hashtable *fields) {
 	free(fields->list);
 	free(fields);
 }
-
+//////////////////////////////////////////////////////////////
 
 /* inserts a spec into the overflow chain */
 node *spec_insert(node *head, char *id, hashtable *fields) {

@@ -88,9 +88,8 @@ int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 
 		if (label[0] == '1')
 			hash_table_join(hash_table, left_spec, right_spec);
-		//TODO: Enable this with yeeted segfault
-		//else /* label is 0: anti_clique time */
-			//hash_table_notjoin(hash_table, left_spec, right_spec);
+		else /* label is 0: anti_clique time */
+			hash_table_notjoin(hash_table, left_spec, right_spec);
 	}
 
 	return 0;

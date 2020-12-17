@@ -1,5 +1,19 @@
 #include "spec.h"
 
+
+/* allocates memory for the clique node and initializes its attributes */
+clique *clique_init(node *spec) {
+	clique *c = malloc(sizeof(clique));
+	c->NegCorrel = NULL;
+	c->head = malloc(sizeof(cliqueNode));
+
+	cliqueNode *cn = c->head;
+	cn->next = NULL;
+	cn->spec = spec;
+	return c;
+}
+
+
 /* this function is called when spec1 and spec2 are definitely not alike */
 void anti_clique_insert(node *spec1, node *spec2) {
 	anti_clique *ac1 = spec1->clique->NegCorrel;
@@ -14,7 +28,6 @@ void anti_clique_insert(node *spec1, node *spec2) {
 
 		ac1 = ac1->next;
 	}
-
 
 	/* every new anti_clique node is put at the top of the anti_clique list */
 	spec1->clique->NegCorrel = anti_clique_init(spec2->clique, spec1->clique->NegCorrel);
@@ -31,19 +44,84 @@ anti_clique *anti_clique_init(clique *c, anti_clique *head) {
 }
 
 
+
+void remove_duplicates(anti_clique *ac, clique *c1) {
+	anti_clique *temp = ac;
+	anti_clique *prev;
+	int cnt;
+
+	/* traverse list of anti_clique nodes */
+	while (temp != NULL) {
+		clique *another = temp->diff;
+		anti_clique *ac_node = another->NegCorrel;
+		cnt = 0;
+		prev = NULL;
+
+		/* traverse list of another's clique anti_clique nodes */
+		while(ac_node != NULL) {
+			if(ac_node->diff == c1) {
+				cnt++;
+				if(cnt > 1) {
+					/* remove node */
+					prev->next = ac_node->next;
+					ac_node->next = NULL;
+					ac_node->diff = NULL;
+					free(ac_node);
+					ac_node = prev;
+					cnt--;
+				}
+			}
+
+			prev = ac_node;
+			ac_node = ac_node->next;
+		}
+
+		temp = temp->next;
+	}
+}
+
+
+void remove_merge_duplicates(anti_clique *ac) {
+	anti_clique *temp = ac;
+	anti_clique *temp1, *prev;
+
+	while (temp != NULL) {
+		temp1 = temp->next;
+		prev = temp;
+
+		while(temp1 != NULL) {
+			if (temp->diff == temp1->diff) {
+				/* remove this anti_clique nodes */
+				prev->next = temp1->next;
+				temp1->next = NULL;
+				temp1->diff = NULL;
+				free(temp1);
+				temp1 = prev;
+			}
+
+			prev = temp1;
+			temp1 = temp1->next;
+		}
+
+		temp = temp->next;
+	}
+}
+
+
 /* requirement: spec1 and spec2 are alike */
-/* after the execution of this function spec1 will point to its list of clique nodes and spec2
-	will point to spec1's list of clique nodes */
+/* after the execution of this function spec1 will point to its clique and spec2 to spec1's clique */
+/* lists consisted of cliqueNode type nodes and anti_clique type nodes will be merged into spec1's clique lists */
 void clique_rearrange(node *spec1, node *spec2) {
 	cliqueNode *temp = spec1->clique->head;
 	anti_clique *ac1 = spec1->clique->NegCorrel;
 	anti_clique *ac2 = spec2->clique->NegCorrel;
+	clique *clique1 = spec1->clique;
 	clique *clique2 = spec2->clique;
 
 	if (spec1->clique == spec2->clique)
 		return;
 
-	/* clique merging */
+	/* -------------------------------clique merging----------------------------------- */
 
 	/* Find tail of spec1's clique */
 	while (temp->next)
@@ -52,10 +130,6 @@ void clique_rearrange(node *spec1, node *spec2) {
 	/* Attach spec2's clique to that tail */
 	temp->next = spec2->clique->head;
 
-
-	//delete memory pointed by spec2's clique (we don't need it since 2 cliques merged)
-	///free(spec2->clique);
-
 	/* Update the specs in that clique to point to the
 	 * newly unified spec1 clique */
 	while ((temp = temp->next)) {
@@ -63,11 +137,12 @@ void clique_rearrange(node *spec1, node *spec2) {
 		temp->spec->hasListOfClique = false;
 	}
 
-	/* anti-clique merging */
 
+	/* ----------------------------anti-clique merging-------------------------------- */
+	anti_clique *tmp = NULL;
 	if (ac2 != NULL) {
-
 		if (ac1 != NULL) {
+
 			/* find tail of spec1's anti-clique list */
 			while (ac1->next != NULL) {
 				ac1 = ac1->next;
@@ -75,61 +150,42 @@ void clique_rearrange(node *spec1, node *spec2) {
 
 			/* attach spec2's anti-clique to that tail */
 			ac1->next = ac2;
-			ac1 = ac1->next;
+			tmp = ac1->next;
 		} else {
 			/* if spec1's anti_clique list doesn't exist then just take spec2's anti_clique list */
-			ac1 = spec1->clique->NegCorrel = ac2;
+			tmp = spec1->clique->NegCorrel = ac2;
 		}
 
-
 		/* negative correlation is a two-way relation */
-		anti_clique *tmp = ac1;
-		anti_clique *other, *prev, *prev1;
-		other = prev = prev1 = NULL;
 
 		/* make sure the cliques that are negatively correlated with spec2->clique
 		   also point to spec1->clique */
 		while (tmp != NULL) {
 			anti_clique *cur = tmp->diff->NegCorrel;
-			other = prev1 = prev = cur;
-
-			bool flag = false;
 
 			/* traverse tmp->diff's anti_clique list */
 			while(cur != NULL) {
-
 				/* find the anti_clique node that points to spec2->clique */
-				if (cur->diff == clique2) {
-					other = cur;
-					prev1 = prev;
+	 			if (cur->diff == clique2) {
+					cur->diff = spec1->clique; //replace pointer with spec1's clique
 				}
 
-				if (cur->diff == spec1->clique) {	//check if this clique already points to spec1's clique
-					flag = true;
-				}
-
-				if(cur->next != NULL) {
-					prev = cur;
-				}
 				cur = cur->next;
-			}
-
-			if (flag == false) {
-				other->diff = spec1->clique;
-			}else{  //remove this anti_clique node
-				if (other == prev1) {//if it's the first anti_clique node that we need to remove
-					tmp->diff->NegCorrel = other->next;
-				}else{
-					prev1->next = other->next;
-				}
-				free(other);
 			}
 
 			tmp = tmp->next;
 		}
 
+
+		/* make sure that the anti_clique nodes of the cliques, that the nodes of spec2's clique point to,
+		   point only once to clique1  */
+		remove_duplicates(ac2, clique1);
+
+		/* make sure that the new anti_clique list does not point to the same clique more than once */
+		remove_merge_duplicates(spec1->clique->NegCorrel);
 	}
 
+	/* two cliques merged we don't need spec2's clique, free memory */
 	free(clique2);
 }
 
@@ -160,18 +216,4 @@ void delete_antiClique(anti_clique *head) {
 		cur = cur->next;
 		free(temp);
 	}
-}
-
-
-/* allocates memory for the clique node and initializes its attributes */
-clique *clique_init(node *spec) {
-	clique *c = malloc(sizeof(clique));
-
-	c->NegCorrel = NULL;
-	c->head = malloc(sizeof(cliqueNode));
-
-	cliqueNode *cn = c->head;
-	cn->next = NULL;
-	cn->spec = spec;
-	return c;
 }

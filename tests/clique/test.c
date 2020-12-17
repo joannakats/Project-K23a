@@ -40,6 +40,9 @@ void test_anti_clique_insert() {
 		TEST_CHECK(spec3->clique->NegCorrel->diff == spec2->clique);
 		TEST_CHECK(spec2->clique->NegCorrel->diff == spec3->clique);
 
+		//anti_clique_insert(spec1, spec3);
+
+
 
 		/* free memory allocated for this test */
 		delete_specNode(spec1);
@@ -49,7 +52,7 @@ void test_anti_clique_insert() {
 
 
 void test_clique_rearrange(void) {
-	node *spec1, *spec2, *spec3, *spec_a, *spec_b;
+	node *spec1, *spec2, *spec3, *spec_a, *spec_b, *spec_c, *spec_d;
 	clique *hc, *s1c, *s2c;
 
 	//make a list of three specs
@@ -60,11 +63,14 @@ void test_clique_rearrange(void) {
 	//initialize spec_a & spec_b
 	spec_a = spec_init("a", NULL, 0);
 	spec_b = spec_init("b", NULL, 0);
+	spec_c = spec_init("c", NULL, 0);
+	spec_d = spec_init("d", NULL, 0);
 
 	//create a negative correlation between spec2 & spec_a
 	anti_clique_insert(spec2, spec_a);
 
 	// //merge spec2's clique with head's clique
+	// printf("\tFIRST CLIQUE REARRANGE\n");
 	clique_rearrange(spec3, spec2);
 	hc = spec3->clique;
 	s2c = spec2->clique;
@@ -80,10 +86,11 @@ void test_clique_rearrange(void) {
 	TEST_CHECK(hc->NegCorrel->diff == spec_a->clique);	//check if spec3 points to spec_a
 	TEST_CHECK(spec_a->clique->NegCorrel->diff == hc);	//check if spec_a points to spec3
 
-	// //create a negative correlation between spec_b & spec1
+	//create a negative correlation between spec_b & spec1
 	anti_clique_insert(spec_b, spec1);
 
-	// //merge spec2's clique with the tail's clique
+	//merge spec2's clique with the tail's clique
+	// printf("\tSECOND CLIQUE REARRANGE\n");
 	clique_rearrange(spec1, spec2);
 	hc = spec3->clique;
 	s1c = spec1->clique;
@@ -104,10 +111,37 @@ void test_clique_rearrange(void) {
 	TEST_CHECK(s1c->NegCorrel->next->diff == spec_a->clique);
 	TEST_CHECK(spec_a->clique->NegCorrel->diff == s1c);
 
+	/////////////////////////////////////////////////////////////////////////////////
+	anti_clique_insert(spec_d, spec1);
+	TEST_CHECK(spec1->clique->NegCorrel->diff == spec_d->clique);
+	TEST_CHECK(spec_d->clique->NegCorrel->diff == spec1->clique);
+
+	anti_clique_insert(spec_c, spec_d);
+	TEST_CHECK(spec_d->clique->NegCorrel->diff == spec_c->clique);
+	TEST_CHECK(spec_c->clique->NegCorrel->diff == spec_d->clique);
+
+
+	clique_rearrange(spec1, spec_c);
+	TEST_CHECK(spec1->clique == spec_c->clique);
+
+	anti_clique *tmp = spec1->clique->NegCorrel;
+
+	//check for duplicate anti_clique nodes
+	TEST_CHECK(tmp != NULL);
+	TEST_CHECK(tmp->diff == spec_d->clique);
+	tmp = tmp->next;
+	TEST_CHECK(tmp->diff == spec_b->clique);
+	tmp = tmp->next;
+	TEST_CHECK(tmp->diff == spec_a->clique);
+	tmp = tmp->next;
+	TEST_CHECK(tmp == NULL);
+
 	//free memory allocated for this test
 	delete_specList(spec3);
 	delete_specNode(spec_a);
 	delete_specNode(spec_b);
+	delete_specNode(spec_c);
+	delete_specNode(spec_d);
 }
 
 

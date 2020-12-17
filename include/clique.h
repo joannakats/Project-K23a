@@ -21,7 +21,8 @@ typedef struct cliqueNode {
 	node *spec;
 } cliqueNode;
 
-
+void remove_duplicates(anti_clique *ac, clique *c1);
+void remove_merge_duplicates(anti_clique *ac);
 clique *clique_init(node *spec);
 void delete_antiClique(anti_clique *head);
 void delete_clique(clique *node);
