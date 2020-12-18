@@ -1,0 +1,10 @@
+left_spec_id,right_spec_id,label
+www.garricks.com.au//31,www.ebay.com//53278,0
+www.ebay.com//58782,www.ebay.com//24817,0
+www.ebay.com//58782,www.ebay.com//43019,0
+www.mypriceindia.com//211,www.garricks.com.au//31,0
+www.shopbot.com.au//331,www.mypriceindia.com//155,1
+www.ebay.com//54324,www.mypriceindia.com//155,0
+www.garricks.com.au//31,www.ebay.com//58782,1
+www.mypriceindia.com//155,www.ebay.com//53278,0
+www.ebay.com//24817,www.mypriceindia.com//155,1
