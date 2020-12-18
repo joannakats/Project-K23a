@@ -29,8 +29,6 @@ typedef struct node {
 } node;
 
 
-void print_list(node *head);
-void print_fields(field *array, int dim);
 node *spec_init(char *id, hashtable *HSfields);
 hashtable *field_init(int size);
 field *HSfield_insert(hashtable *hs, char *property);

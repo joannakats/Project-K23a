@@ -47,7 +47,7 @@ tests/test_json_insertion: tests/json_insertion/test.o $(filter-out src/main.o,$
 tests/test_vocabulary: tests/vocabulary/test.o src/hashtable.o src/spec_hashtable.o src/spec.o src/clique.o src/preprocessing.o src/vocabulary.o $(HDR)
 tests/test_hstable: tests/hashtable/test.o src/hashtable.o src/spec_hashtable.o src/spec.o src/clique.o $(HDR)
 tests/test_spec: tests/spec/test.o src/hashtable.o src/spec.o src/clique.o  $(HDR)
-tests/test_clique: tests/clique/test.o src/spec.o src/clique.o src/hashtable.o $(HDR)
+tests/test_clique: tests/clique/test.o src/spec.o src/clique.o src/hashtable.o src/json.o src/spec_hashtable.o $(HDR)
 
 ## Object files
 %.o: %.c $(HDR)
