@@ -6,7 +6,9 @@
 
 #include "common.h"
 #include "json.h"
+#include "loregression.h"
 #include "operations.h"
+#include "prediction.h"
 #include "preprocessing.h"
 #include "vocabulary.h"
 
@@ -67,7 +69,7 @@ int insert_dataset_x(hashtable *hash_table, char *dataset_x, bow *vocabulary) {
 	return 0;
 }
 
-/* Phase 2 - Join specs from Dataset W  */
+/* Phase 2 - 1. Join specs from Dataset W  */
 int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 	long line_n;
 	char line[512];
@@ -91,11 +93,12 @@ int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 		else /* label is 0: anti_clique time */
 			hash_table_notjoin(hash_table, left_spec, right_spec);
 
-		// TODO: insert spec1, spec2, label in Logistic Regression model
+		// TODO: insert spec1, spec2, label in Logistic Regression model?
 	}
 
 	return 0;
 }
+
 
 /* TODO: vocabulary not used yet, but needed in training the model */
 static int parse_dataset_w(hashtable *hash_table, char *dataset_w, bow *vocabulary) {
@@ -106,6 +109,8 @@ static int parse_dataset_w(hashtable *hash_table, char *dataset_w, bow *vocabula
 	/* Don't count the header line in total */
 	long training_n, validation_n, test_n;
 	long line_total = 0;
+
+	logistic_regression *model;
 
 	if (!(csv = fopen(dataset_w, "r"))) {
 		perror(dataset_w);
@@ -141,10 +146,25 @@ static int parse_dataset_w(hashtable *hash_table, char *dataset_w, bow *vocabula
 
 	/* Parse Dataset W: Start from the first relation line */
 	fseek(csv, offset, SEEK_SET);
+
+	model = prediction_init(vocabulary);
+
+	/* 1: Cliques and Anticliques */
 	relate_specs(hash_table, csv, training_n);
 
-	fclose(csv);
+	/* 2: Training */
+	/* TODO: If only the Dataset W lines, do it in relate_specs() */
 
+	/* 3: Validation set */
+	prediction_validation(csv, validation_n, model);
+
+	/* 4: Test set (We're not going for epochs right now) */
+	prediction_test(csv, test_n, model);
+
+	/* TODO: maybe prediction destroy? */
+	loregression_delete(model);
+
+	fclose(csv);
 	return 0;
 }
 
@@ -190,18 +210,18 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 
 	preprocessing_init("stopwords.txt");
 
-	fputs("Reading Dataset X...\n", stderr);
+	fputs("[Reading Dataset X]\n", stderr);
 	if (!(ret = insert_dataset_x(&hash_table, dataset_x, vocabulary))) {
 		// DEBUG: print global vocabulary size
 		printf("Distinct words: %d\n", vocabulary->ht.count);
 
-		fputs("Preprocessing specs...\n", stderr);
+		fputs("[Preprocessing specs]\n", stderr);
 		if (!(ret = preprocessing_specs(&hash_table, vocabulary, true))) {
 			printf("Distinct words after trim: %d\n", vocabulary->ht.count);
 
-			fputs("Reading Dataset W...\n", stderr);
+			fputs("[Reading Dataset W]\n", stderr);
 			if (!(ret = parse_dataset_w(&hash_table, dataset_w, vocabulary))) {
-				fputs("Writing output csv...\n", stderr);
+				fputs("[Writing output csv (cliques)]\n", stderr);
 				ret = print_pairs_csv(&hash_table, output);
 			}
 		}
