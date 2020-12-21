@@ -39,7 +39,7 @@ void loregression_delete(logistic_regression *loregression){
 
 
 /* The goal is to find the regression accounting function p(x) ,p(xi) near 0 or 1. */
-int loregression_train(logistic_regression *loregression,node *spec_left,node *spec_right,double label){
+int logregression_train(logistic_regression *loregression,node *spec_left,node *spec_right,double label){
 	int word_size=loregression->size;
 	int i,index=0,k;
 	double *f=malloc(word_size*sizeof(*f));
@@ -59,7 +59,7 @@ int loregression_train(logistic_regression *loregression,node *spec_left,node *s
 	for(i=index;i<word_size;i++){
 		x[i]=0.0;
 	}
-	
+
 	//compute f(i)=w(i)*x[i]+b
 	for(i=0;i<word_size;i++){
 		f[i]+=loregression->w[i]*x[i]; /* TODO check weights ??*/
@@ -67,13 +67,13 @@ int loregression_train(logistic_regression *loregression,node *spec_left,node *s
 	for(i=0;i<word_size;i++){
 		f[i]+=loregression->b;
 	}
-	
+
 	//p(x)=sigmoid(f(x))
 	for(i=0;i<word_size;i++){
 			f[i]=sigmoid(f[i]);
-	
+
 	}
-	//cost 
+	//cost
 	double *j=malloc(word_size*sizeof(double));
 	for(k=0;k<word_size;k++){
 		j[k]=0;
@@ -81,11 +81,11 @@ int loregression_train(logistic_regression *loregression,node *spec_left,node *s
 	for( k=0;k<word_size;k++){
 		j[k]+=(f[k]-label)*x[k];
 	}
-	//weigh 
-	for( k=0;k<word_size;k++){ 
+	//weigh
+	for( k=0;k<word_size;k++){
 		loregression->w[k]-=LR*j[k];
 	}
-	
+
 	free(f);
 	free(x);
 	return 0;
@@ -97,7 +97,7 @@ double loregression_predict(logistic_regression *loregression,node *spec_left,no
 	int size=loregression->size;
 	double *x=malloc((size )*sizeof(*x));
 	int i,index=0;
-	double pred = loregression->b; 
+	double pred = loregression->b;
 	//concat spec_idf_factors in x
 	for(i=0;i<spec_left->wordCount;i++){
 		x[index]=spec_left->tf_idf_factors[i];
@@ -110,8 +110,8 @@ double loregression_predict(logistic_regression *loregression,node *spec_left,no
 	for(int j=index;j<size ;j++){
 		pred+=loregression->w[j] *x[j] ;
 	}
-	
-	
+
+
 	free(x);
 	return sigmoid(pred);
 }

@@ -69,18 +69,24 @@ int insert_dataset_x(hashtable *hash_table, char *dataset_x, bow *vocabulary) {
 	return 0;
 }
 
-/* Phase 2 - 1. Join specs from Dataset W  */
-int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
-	long line_n;
+/* Phase 2 - Join specs from Dataset W  */
+int insert_dataset_w(hashtable *hash_table, char *dataset_w) {
 	char line[512];
 	char *left_spec, *right_spec, *label, *saveptr;
 
-	for (line_n = 1; line_n <= training_n; line_n++) {
-		if (!fgets(line, sizeof(line), csv)) {
-			perror("Reading Dataset W for training");
-			return errno;
-		}
+	FILE *csv;
 
+	if (!(csv = fopen(dataset_w, "r"))) {
+		perror(dataset_w);
+		return errno;
+	}
+
+	if (!fgets(line, sizeof(line), csv)) {
+		perror("Dataset W is empty");
+		return errno;
+	}
+
+	while (fgets(line, sizeof(line), csv)) {
 		//DEBUG:
 		//puts(line);
 
@@ -92,43 +98,31 @@ int relate_specs(hashtable *hash_table, FILE *csv, long training_n) {
 			hash_table_join(hash_table, left_spec, right_spec);
 		else /* label is 0: anti_clique time */
 			hash_table_notjoin(hash_table, left_spec, right_spec);
-
-		// TODO: insert spec1, spec2, label in Logistic Regression model?
 	}
 
 	return 0;
 }
 
+/* Phase 3 - Expand the dataset with all the derived relations
+ * and partition for training */
+static int partition_dataset_w(hashtable *hash_table, char *dataset_w, bow *vocabulary) {
+	FILE *expanded;
 
-/* TODO: vocabulary not used yet, but needed in training the model */
-static int parse_dataset_w(hashtable *hash_table, char *dataset_w, bow *vocabulary) {
-	FILE *csv;
-	char line[512];
-	long offset;
-
-	/* Don't count the header line in total */
+	/* Partitioning lines */
 	long training_n, validation_n, test_n;
 	long line_total = 0;
 
 	logistic_regression *model;
 
-	if (!(csv = fopen(dataset_w, "r"))) {
+	return 0;
+
+	if (!(expanded = fopen("expanded.csv", "w"))) {
 		perror(dataset_w);
 		return errno;
 	}
 
-	/* Skip first line (column titles) */
-	if (!fgets(line, sizeof(line), csv)) {
-		perror("dataset_w is malformed");
-		fclose(csv);
-
-		return errno;
-	}
-
-	/* Get offset to start insertion from (after titles) */
-	offset = ftell(csv);
-
-	/* Count data relation lines, to split 60-20-20 */
+	//TODO: Make expanded set with all cliques - anticliques (function)
+	/* Count data relation lines, to split 60-20-20
 	while (fgets(line, sizeof(line), csv))
 		line_total++;
 
@@ -137,38 +131,37 @@ static int parse_dataset_w(hashtable *hash_table, char *dataset_w, bow *vocabula
 		fclose(csv);
 
 		return errno;
-	};
+	}; */
 
-	/* Dataset W split in 3 */
+	/* Expanded Dataset W split in 3 */
 	training_n = line_total * 60 / 100;
 	validation_n = line_total * 20 / 100;
 	test_n = line_total - training_n - validation_n;
 
-	/* Parse Dataset W: Start from the first relation line */
-	fseek(csv, offset, SEEK_SET);
-
+	/* Partition expanded dataset */
+	/* TODO: init expanded dataset here? */
 	model = prediction_init(vocabulary);
 
-	/* 1: Cliques and Anticliques */
-	relate_specs(hash_table, csv, training_n);
+	/* 1: Training */
+	fputs("Training model...\n", stderr);
+	prediction_training(expanded, training_n, hash_table, model);
 
-	/* 2: Training */
-	/* TODO: If only the Dataset W lines, do it in relate_specs() */
+	/* 2: Validation set */
+	fputs("Validation set...\n", stderr);
+	prediction_validation(expanded, validation_n, hash_table, model);
 
-	/* 3: Validation set */
-	prediction_validation(csv, validation_n, model);
-
-	/* 4: Test set (We're not going for epochs right now) */
-	prediction_test(csv, test_n, model);
+	/* 3: Test set (We're not going for epochs right now) */
+	fputs("Testing set...\n", stderr);
+	prediction_test(expanded, test_n, hash_table, model);
 
 	/* TODO: maybe prediction destroy? */
 	loregression_delete(model);
 
-	fclose(csv);
+	fclose(expanded);
 	return 0;
 }
 
-/* Phase 3 - Output */
+/* Phase 4 - Output */
 static int print_pairs_csv(hashtable *hash_table, char *output) {
 	FILE *output_csv;
 
@@ -220,9 +213,14 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 			printf("Distinct words after trim: %d\n", vocabulary->ht.count);
 
 			fputs("[Reading Dataset W]\n", stderr);
-			if (!(ret = parse_dataset_w(&hash_table, dataset_w, vocabulary))) {
-				fputs("[Writing output csv (cliques)]\n", stderr);
-				ret = print_pairs_csv(&hash_table, output);
+			if (!(ret = insert_dataset_w(&hash_table, dataset_w))) {
+
+				fputs("[Expanding Dataset W]\n", stderr);
+				if (!(ret = partition_dataset_w(&hash_table, dataset_w, vocabulary))) {
+
+					fputs("[Writing output csv (cliques)]\n", stderr);
+					ret = print_pairs_csv(&hash_table, output);
+				}
 			}
 		}
 	}

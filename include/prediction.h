@@ -8,7 +8,8 @@
 logistic_regression *prediction_init(bow *vocabulary);
 
 /* TODO: pass pointer to model as argument */
-int prediction_validation(FILE *csv, int validation_n, logistic_regression *model);
-int prediction_test(FILE *csv, int test_n, logistic_regression *model);
+int prediction_training(FILE *csv, int training_n, hashtable *specs, logistic_regression *model);
+int prediction_validation(FILE *csv, int validation_n, hashtable *specs, logistic_regression *model);
+int prediction_test(FILE *csv, int test_n, hashtable *specs, logistic_regression *model);
 
 #endif /* PREDICTION_H */
