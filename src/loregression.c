@@ -70,11 +70,8 @@ int loregression_train(logistic_regression *loregression,node *spec_left,node *s
 	
 	//p(x)=sigmoid(f(x))
 	for(i=0;i<word_size;i++){
-		if( f[i]>0){
 			f[i]=sigmoid(f[i]);
-		}else{
-			f[i]=0.0;
-		}
+	
 	}
 	//cost 
 	double *j=malloc(word_size*sizeof(double));
