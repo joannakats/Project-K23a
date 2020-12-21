@@ -100,6 +100,7 @@ int insert_dataset_w(hashtable *hash_table, char *dataset_w) {
 			hash_table_notjoin(hash_table, left_spec, right_spec);
 	}
 
+	fclose(csv);
 	return 0;
 }
 
@@ -114,6 +115,7 @@ static int partition_dataset_w(hashtable *hash_table, char *dataset_w, bow *voca
 
 	logistic_regression *model;
 
+	// TODO: REMOVE THIS AFTER print implemented
 	return 0;
 
 	if (!(expanded = fopen("expanded.csv", "w"))) {
