@@ -40,7 +40,7 @@ void loregression_delete(logistic_regression *loregression){
 
 /* The goal is to find the regression accounting function p(x) ,p(xi) near 0 or 1. */
 int loregression_train(logistic_regression *loregression,node *spec_left,node *spec_right,double label){
-	int word_size=spec_left->wordCount + spec_right->wordCount;
+	int word_size=loregression->size;
 	int i,index=0,k;
 	double *f=malloc(word_size*sizeof(*f));
 	double *x=malloc(word_size*sizeof(*x));
@@ -56,9 +56,12 @@ int loregression_train(logistic_regression *loregression,node *spec_left,node *s
 		x[index]=spec_right->tf_idf_factors[i];
 		index++;
 	}
+	for(i=index;i<word_size;i++){
+		x[i]=0.0;
+	}
 	
 	//compute f(i)=w(i)*x[i]+b
-	for(i=0;i<word_size-2;i++){
+	for(i=0;i<word_size;i++){
 		f[i]+=loregression->w[i]*x[i]; /* TODO check weights ??*/
 	}
 	for(i=0;i<word_size;i++){
@@ -67,7 +70,11 @@ int loregression_train(logistic_regression *loregression,node *spec_left,node *s
 	
 	//p(x)=sigmoid(f(x))
 	for(i=0;i<word_size;i++){
-		f[i]=sigmoid(f[i]);
+		if( f[i]>0){
+			f[i]=sigmoid(f[i]);
+		}else{
+			f[i]=0.0;
+		}
 	}
 	//cost 
 	double *j=malloc(word_size*sizeof(double));
@@ -90,9 +97,10 @@ int loregression_train(logistic_regression *loregression,node *spec_left,node *s
 
 
 double loregression_predict(logistic_regression *loregression,node *spec_left,node *spec_right){
-	double *x=malloc((spec_left->wordCount + spec_right->wordCount )*sizeof(*x));
+	int size=loregression->size;
+	double *x=malloc((size )*sizeof(*x));
 	int i,index=0;
-	double pred = loregression->b; //or 0 for testing??
+	double pred = loregression->b; 
 	//concat spec_idf_factors in x
 	for(i=0;i<spec_left->wordCount;i++){
 		x[index]=spec_left->tf_idf_factors[i];
@@ -102,7 +110,7 @@ double loregression_predict(logistic_regression *loregression,node *spec_left,no
 		x[index]=spec_right->tf_idf_factors[i];
 		index++;
 	}
-	for(int j=0;j<(index-1);j++){
+	for(int j=index;j<size ;j++){
 		pred+=loregression->w[j] *x[j] ;
 	}
 	
