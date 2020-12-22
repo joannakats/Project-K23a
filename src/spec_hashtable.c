@@ -67,6 +67,85 @@ void print_pairs(const hashtable *hsTable){
 }
 
 
+/* procedure to print every pair of specs */
+int print_ground_truth(const hashtable *hs) {
+	if (hs == NULL)
+		return -2;
+
+	node *cur;
+	cliqueNode *left, *right;
+	anti_clique *tmp;
+	int counter = 0;	//counter of pairs printed
+
+	for (int i = 0; i < hs->tableSize; i++) {
+		cur = hs->list[i];
+
+		/* traverse overflow chain */
+		while (cur != NULL) {
+			if (cur->hasListOfClique == true) {
+				left = cur->clique->head;
+
+				/* traverse list of cliqueNodes */
+				while(left->next != NULL) {
+					tmp = cur->clique->NegCorrel;//////////////
+					right = left->next;
+
+					while(right != NULL) {
+						/* print pairs of specs that belong to a clique */
+						printf("%s,%s,1\n", left->spec->id, right->spec->id);
+						counter++;
+						right = right->next;
+					}
+
+					/* for cliqueNode left traverse list of anti_clique nodes */
+					while (tmp != NULL) {
+						if (tmp->one_way_relation == true) {
+							clique *c = tmp->diff;
+							cliqueNode *other = c->head;	//get head of cliqueNode list of the other clique
+
+							/* traverse list of cliqueNodes of this clique*/
+							while (other != NULL) {
+								/* print pairs of specs that do not belong to a clique */
+								printf("%s,%s,0\n", left->spec->id, other->spec->id);
+								counter++;
+								other = other->next;
+							}
+						}
+
+						tmp = tmp->next;
+					}
+
+					left = left->next;
+				}
+
+				/* last cliqueNode - print negative correlation */
+				/* for the last cliqueNode traverse list of anti_clique nodes */
+				tmp = cur->clique->NegCorrel;
+				while (tmp != NULL) {
+					if (tmp->one_way_relation == true) {
+						clique *c = tmp->diff;
+						cliqueNode *other = c->head;
+
+						/* traverse list of cliqueNodes of this clique*/
+						while (other != NULL) {
+							/* print pairs of specs that do not belong to a clique */
+							printf("%s,%s,0\n", left->spec->id, other->spec->id);
+							counter++;
+							other = other->next;
+						}
+					}
+
+					tmp = tmp->next;
+				}
+			}
+
+			cur = cur->next;
+		}
+	}
+	return counter;
+}
+
+
 int delete_hashtable(hashtable *hsTable){
 	int size=hsTable->tableSize;
 	for(int i=0;i<size;i++){

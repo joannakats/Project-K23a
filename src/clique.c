@@ -30,16 +30,17 @@ void anti_clique_insert(node *spec1, node *spec2) {
 	}
 
 	/* every new anti_clique node is put at the top of the anti_clique list */
-	spec1->clique->NegCorrel = anti_clique_init(spec2->clique, spec1->clique->NegCorrel);
-	spec2->clique->NegCorrel = anti_clique_init(spec1->clique, spec2->clique->NegCorrel);
+	spec1->clique->NegCorrel = anti_clique_init(spec2->clique, spec1->clique->NegCorrel, true);
+	spec2->clique->NegCorrel = anti_clique_init(spec1->clique, spec2->clique->NegCorrel, false);
 }
 
 
 /* allocates memory for anti_clique structure and initializes */
-anti_clique *anti_clique_init(clique *c, anti_clique *head) {
+anti_clique *anti_clique_init(clique *c, anti_clique *head, bool b) {
 	anti_clique *ac = malloc(sizeof(anti_clique));
 	ac->next = head;
 	ac->diff = c;
+	ac->one_way_relation = b;
 	return ac;
 }
 

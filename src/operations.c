@@ -216,6 +216,9 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 
 			fputs("[Reading Dataset W]\n", stderr);
 			if (!(ret = insert_dataset_w(&hash_table, dataset_w))) {
+				// comment out lines 220,221 and comment lines 223-229
+				// int w = print_ground_truth(&hash_table);
+				// printf("num of pairs: %d\n", w);
 
 				fputs("[Expanding Dataset W]\n", stderr);
 				if (!(ret = partition_dataset_w(&hash_table, dataset_w, vocabulary))) {
