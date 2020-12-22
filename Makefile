@@ -1,3 +1,4 @@
+MAKEFLAGS = -j$(shellnproc)
 CFLAGS = -Wall -Wextra -pedantic -Iinclude
 LIBS = -lm
 
