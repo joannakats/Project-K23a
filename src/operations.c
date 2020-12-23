@@ -220,12 +220,12 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 				// int w = print_ground_truth(&hash_table);
 				// printf("num of pairs: %d\n", w);
 
-				fputs("[Expanding Dataset W]\n", stderr);
-				if (!(ret = partition_dataset_w(&hash_table, dataset_w, vocabulary))) {
-
-					fputs("[Writing output csv (cliques)]\n", stderr);
-					ret = print_pairs_csv(&hash_table, output);
-				}
+				// fputs("[Expanding Dataset W]\n", stderr);
+				// if (!(ret = partition_dataset_w(&hash_table, dataset_w, vocabulary))) {
+				//
+				// 	fputs("[Writing output csv (cliques)]\n", stderr);
+				// 	ret = print_pairs_csv(&hash_table, output);
+				// }
 			}
 		}
 	}

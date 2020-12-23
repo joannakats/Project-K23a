@@ -68,9 +68,12 @@ void print_pairs(const hashtable *hsTable){
 
 
 /* procedure to print every pair of specs */
-int print_ground_truth(const hashtable *hs) {
+int print_relations(const hashtable *hs, FILE *fp) {
 	if (hs == NULL)
 		return -2;
+
+	if (fp == NULL)
+		return -3;
 
 	node *cur;
 	cliqueNode *left, *right;
@@ -92,7 +95,7 @@ int print_ground_truth(const hashtable *hs) {
 
 					while(right != NULL) {
 						/* print pairs of specs that belong to a clique */
-						printf("%s,%s,1\n", left->spec->id, right->spec->id);
+						fprintf(fp, "%s,%s,1\n", left->spec->id, right->spec->id);
 						counter++;
 						right = right->next;
 					}
@@ -106,7 +109,7 @@ int print_ground_truth(const hashtable *hs) {
 							/* traverse list of cliqueNodes of this clique*/
 							while (other != NULL) {
 								/* print pairs of specs that do not belong to a clique */
-								printf("%s,%s,0\n", left->spec->id, other->spec->id);
+								fprintf(fp, "%s,%s,0\n", left->spec->id, other->spec->id);
 								counter++;
 								other = other->next;
 							}
@@ -129,7 +132,7 @@ int print_ground_truth(const hashtable *hs) {
 						/* traverse list of cliqueNodes of this clique*/
 						while (other != NULL) {
 							/* print pairs of specs that do not belong to a clique */
-							printf("%s,%s,0\n", left->spec->id, other->spec->id);
+							fprintf(fp, "%s,%s,0\n", left->spec->id, other->spec->id);
 							counter++;
 							other = other->next;
 						}
