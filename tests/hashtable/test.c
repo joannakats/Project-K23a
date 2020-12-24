@@ -169,8 +169,10 @@ void test_print_relations(void) {
 	int ret = 0;
 	FILE *fp, *fp1;
 	char *dataset_x = "hashtable/2013_camera_specs";
+	// char *dataset_w = "hashtable/sigmod_large_labelled_dataset.csv";
 	char *dataset_w = "hashtable/sigmod_medium_labelled_dataset.csv";
-	char line1[512], line2[512];
+	char line1[512], line2[512], left1[203], left2[203], right1[203], right2[203];
+	char *token;
 
 	hashtable hash_table;
 	hash_table = hashtable_init(10007);
@@ -190,12 +192,30 @@ void test_print_relations(void) {
 			fseek(fp, 0, SEEK_SET);
 			/* read every line of this file */
 			while (fgets(line1, sizeof(line1), fp)) {
+				token = strtok(line1, ",");
+				strcpy(left1, token);
+				token = strtok(NULL, ",");
+				strcpy(right1, token);
+
 				fp1 = fp;
 
 				/* read lines down from line1 in order to compare */
 				while (fgets (line2, sizeof(line2), fp1)) {
-					TEST_CHECK(strcmp(line1, line2) != 0);
-					TEST_MSG("DUPLICATES FOUND");
+					// token = NULL;
+					token = strtok(line2, ",");
+					strcpy(left2, token);
+					token = strtok(NULL, ",");
+					strcpy(right2, token);
+
+					if (strcmp(left1, left2) == 0) {
+						TEST_CHECK(strcmp(right1, right2) != 0);
+						TEST_MSG("DUPLICATES FOUND");
+					}
+
+					if (strcmp(left1, right2) == 0) {
+						TEST_CHECK(strcmp(left2, right1) != 0);
+						TEST_MSG("DUPLICATES FOUND");
+					}
 				}
 			}
 			fclose(fp);
