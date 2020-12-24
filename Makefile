@@ -30,7 +30,7 @@ TARGET = specs
 TEST_OBJ = $(patsubst %.c,%.o,$(wildcard tests/*/*.c))
 # TODO: Fix TESTS for fields hashtable
 TEST_TARGETS = tests/test_vocabulary tests/test_spec tests/test_clique tests/test_hstable
-#tests/test_json_insertion tests/test_hstable
+#tests/test_json_insertion
 
 TARGETS = $(TARGET) $(TEST_TARGETS)
 
