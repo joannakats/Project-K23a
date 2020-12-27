@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdio.h>
 
 #ifndef _CLIQUE_H
 #define _CLIQUE_H
@@ -29,6 +30,7 @@ clique *clique_init(node *spec);
 void delete_antiClique(anti_clique *head);
 void delete_clique(clique *node);
 void clique_rearrange(node *spec1, node *spec2);
-anti_clique *anti_clique_init(clique *c, anti_clique *head, bool one_way_relation);
+anti_clique *anti_clique_init(clique *c, anti_clique *head);
 void anti_clique_insert(node *spec1, node *spec2);
+void print_negativeCorrelation(clique *host, node *spec, anti_clique *head, int *cnt, FILE *fp);
 #endif

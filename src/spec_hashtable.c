@@ -90,7 +90,7 @@ int print_relations(const hashtable *hs, FILE *fp) {
 
 				/* traverse list of cliqueNodes */
 				while(left->next != NULL) {
-					tmp = cur->clique->NegCorrel;//////////////
+					tmp = cur->clique->NegCorrel;
 					right = left->next;
 
 					while(right != NULL) {
@@ -100,23 +100,7 @@ int print_relations(const hashtable *hs, FILE *fp) {
 						right = right->next;
 					}
 
-					/* for cliqueNode left traverse list of anti_clique nodes */
-					while (tmp != NULL) {
-						if (tmp->one_way_relation == true) {
-							clique *c = tmp->diff;
-							cliqueNode *other = c->head;	//get head of cliqueNode list of the other clique
-
-							/* traverse list of cliqueNodes of this clique*/
-							while (other != NULL) {
-								/* print pairs of specs that do not belong to a clique */
-								fprintf(fp, "%s,%s,0\n", left->spec->id, other->spec->id);
-								counter++;
-								other = other->next;
-							}
-						}
-
-						tmp = tmp->next;
-					}
+					print_negativeCorrelation(cur->clique, left->spec, tmp, &counter, fp);
 
 					left = left->next;
 				}
@@ -124,22 +108,8 @@ int print_relations(const hashtable *hs, FILE *fp) {
 				/* last cliqueNode - print negative correlation */
 				/* for the last cliqueNode traverse list of anti_clique nodes */
 				tmp = cur->clique->NegCorrel;
-				while (tmp != NULL) {
-					if (tmp->one_way_relation == true) {
-						clique *c = tmp->diff;
-						cliqueNode *other = c->head;
 
-						/* traverse list of cliqueNodes of this clique*/
-						while (other != NULL) {
-							/* print pairs of specs that do not belong to a clique */
-							fprintf(fp, "%s,%s,0\n", left->spec->id, other->spec->id);
-							counter++;
-							other = other->next;
-						}
-					}
-
-					tmp = tmp->next;
-				}
+				print_negativeCorrelation(cur->clique, left->spec, tmp, &counter, fp);
 			}
 
 			cur = cur->next;

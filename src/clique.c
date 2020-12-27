@@ -30,17 +30,17 @@ void anti_clique_insert(node *spec1, node *spec2) {
 	}
 
 	/* every new anti_clique node is put at the top of the anti_clique list */
-	spec1->clique->NegCorrel = anti_clique_init(spec2->clique, spec1->clique->NegCorrel, true);
-	spec2->clique->NegCorrel = anti_clique_init(spec1->clique, spec2->clique->NegCorrel, false);
+	spec1->clique->NegCorrel = anti_clique_init(spec2->clique, spec1->clique->NegCorrel);
+	spec2->clique->NegCorrel = anti_clique_init(spec1->clique, spec2->clique->NegCorrel);
 }
 
 
 /* allocates memory for anti_clique structure and initializes */
-anti_clique *anti_clique_init(clique *c, anti_clique *head, bool b) {
+anti_clique *anti_clique_init(clique *c, anti_clique *head) {
 	anti_clique *ac = malloc(sizeof(anti_clique));
 	ac->next = head;
 	ac->diff = c;
-	ac->one_way_relation = b;
+	ac->one_way_relation = false;
 	return ac;
 }
 
@@ -188,6 +188,41 @@ void clique_rearrange(node *spec1, node *spec2) {
 
 	/* two cliques merged we don't need spec2's clique, free memory */
 	free(clique2);
+}
+
+
+void print_negativeCorrelation(clique *host, node *spec, anti_clique *head, int *cnt, FILE *fp) {
+	anti_clique *tmp = head;
+
+	/* traverse list of anti_clique nodes of clique host */
+	while (tmp != NULL) {
+		if (tmp->one_way_relation == false) {
+			clique *c = tmp->diff;
+			cliqueNode *other = c->head;	//get head of cliqueNode list of the other clique
+
+			/* traverse list of cliqueNodes that belong to a clique pointed by tmp */
+			while (other != NULL) {
+				/* print pairs of specs that do not belong to a clique */
+				 fprintf(fp, "%s,%s,0\n", spec->id, other->spec->id);
+				(*cnt)++;
+				other = other->next;
+			}
+
+			/* search the anti_clique node that points back to host clique and set boolean as
+			   true to avoid duplicates */
+			anti_clique *ac = c->NegCorrel;
+			while (ac != NULL) {
+				if (ac->diff == host) {
+					ac->one_way_relation = true;
+					break;
+				}
+
+				ac = ac->next;
+			}
+		}
+
+		tmp = tmp->next;
+	}
 }
 
 

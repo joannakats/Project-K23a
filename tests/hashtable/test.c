@@ -216,6 +216,7 @@ void test_print_relations(void) {
 						TEST_CHECK(strcmp(left2, right1) != 0);
 						TEST_MSG("DUPLICATES FOUND");
 					}
+					
 				}
 			}
 			fclose(fp);
