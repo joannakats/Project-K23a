@@ -46,7 +46,7 @@ static double *make_x(node *spec_left,node *spec_right,int size){
 }
 
 /* The goal is to find the regression accounting function p(x) ,p(xi) near 0 or 1. */
-int logregression_train(logistic_regression *loregression,node *spec_left,node *spec_right,double label){
+int loregression_train(logistic_regression *loregression,node *spec_left,node *spec_right,double label){
 	int size=loregression->size;
 	double f= loregression->b;
 	double *x;
@@ -54,12 +54,12 @@ int logregression_train(logistic_regression *loregression,node *spec_left,node *
 	
 	x=make_x(spec_left,spec_right,size);
 	
-	//compute f(i)=w(i)*x[i]+b
+	//compute f=w[i]*x[i]+b
 	for(int i=0;i<size;i++){
 		f+=loregression->w[i]*x[i]; 
 	}
 	
-	//p(x)=sigmoid(f(x))
+	//p=sigmoid(f)
 	pred=sigmoid(f);
 	
 	for(int k=0;k<size;k++){
@@ -76,7 +76,7 @@ int logregression_train(logistic_regression *loregression,node *spec_left,node *
 
 
 
-double loregression_predict(logistic_regression *loregression,node *spec_left,node *spec_right){
+int loregression_predict(logistic_regression *loregression,node *spec_left,node *spec_right){
 	int size=loregression->size;
 	double *x;
 	double pred = loregression->b;
@@ -89,5 +89,5 @@ double loregression_predict(logistic_regression *loregression,node *spec_left,no
 
 
 	free(x);
-	return sigmoid(pred);
+	return (sigmoid(pred) >= 0.5 ? 1 : 0);
 }
