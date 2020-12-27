@@ -106,7 +106,7 @@ int insert_dataset_w(hashtable *hash_table, char *dataset_w) {
 
 /* Phase 3 - Expand the dataset with all the derived relations
  * and partition for training */
-static int partition_dataset_w(hashtable *hash_table, char *dataset_w, bow *vocabulary) {
+static int partition_dataset_w(hashtable *hash_table, bow *vocabulary) {
 	FILE *expanded;
 
 	/* Partitioning lines */
@@ -115,46 +115,53 @@ static int partition_dataset_w(hashtable *hash_table, char *dataset_w, bow *voca
 
 	logistic_regression *model;
 
-	// TODO: REMOVE THIS AFTER print implemented
-	return 0;
-
-	if (!(expanded = fopen("expanded.csv", "w"))) {
-		perror(dataset_w);
+	/* Write out expanded dataset */
+	if (!(expanded = fopen("expanded.csv", "w+"))) {
+		perror("expanded.csv");
 		return errno;
 	}
 
-	//TODO: Make expanded set with all cliques - anticliques (function)
-	/* Count data relation lines, to split 60-20-20
-	while (fgets(line, sizeof(line), csv))
-		line_total++;
+	line_total = print_relations(hash_table, expanded);
+
+	// DEBUG: temporary for testing with bruh
+	// in that case assume label = 1 in prediction.c
+	// char line[512];
+	// fgets(line, 512, expanded);
+	// line_total = 42535;
 
 	if (line_total <= 0) {
 		perror("dataset_w is empty");
-		fclose(csv);
+		fclose(expanded);
 
 		return errno;
-	}; */
+	}
 
 	/* Expanded Dataset W split in 3 */
 	training_n = line_total * 60 / 100;
 	validation_n = line_total * 20 / 100;
 	test_n = line_total - training_n - validation_n;
 
+	printf("Total lines in expanded dataset: %ld\n", line_total);
+	printf("Training: %10ld lines\nValidation: %8ld lines\nTest: %14ld lines\n", training_n, validation_n, test_n);
+
 	/* Partition expanded dataset */
 	/* TODO: init expanded dataset here? */
 	model = prediction_init(vocabulary);
+
+	/* Start reading from the top */
+	rewind(expanded);
 
 	/* 1: Training */
 	fputs("Training model...\n", stderr);
 	prediction_training(expanded, training_n, hash_table, model);
 
 	/* 2: Validation set */
-	fputs("Validation set...\n", stderr);
-	prediction_validation(expanded, validation_n, hash_table, model);
+	fputs("Validation set... ", stderr);
+	prediction_hits(expanded, validation_n, hash_table, model);
 
 	/* 3: Test set (We're not going for epochs right now) */
-	fputs("Testing set...\n", stderr);
-	prediction_test(expanded, test_n, hash_table, model);
+	fputs("Testing set... ", stderr);
+	prediction_hits(expanded, test_n, hash_table, model);
 
 	/* TODO: maybe prediction destroy? */
 	loregression_delete(model);
@@ -216,16 +223,13 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 
 			fputs("[Reading Dataset W]\n", stderr);
 			if (!(ret = insert_dataset_w(&hash_table, dataset_w))) {
-				// comment out lines 220,221 and comment lines 223-228
-				// int w = print_ground_truth(&hash_table);
-				// printf("num of pairs: %d\n", w);
 
-				// fputs("[Expanding Dataset W]\n", stderr);
-				// if (!(ret = partition_dataset_w(&hash_table, dataset_w, vocabulary))) {
-				//
-				// 	fputs("[Writing output csv (cliques)]\n", stderr);
-				// 	ret = print_pairs_csv(&hash_table, output);
-				// }
+				fputs("[Partitioning Derived Dataset W']\n", stderr);
+				if (!(ret = partition_dataset_w(&hash_table, vocabulary))) {
+
+					fputs("[Writing output csv (cliques)]\n", stderr);
+					ret = print_pairs_csv(&hash_table, output);
+				}
 			}
 		}
 	}
