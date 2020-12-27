@@ -30,8 +30,7 @@ int prediction_training(FILE *csv, int training_n, hashtable *specs, logistic_re
 		spec1 = search_hashTable_spec(specs, left_spec, &pos);
 		spec2 = search_hashTable_spec(specs, right_spec, &pos);
 
-		//TODO:
-		//loregression_train(model, spec1, spec2, atoi(label));
+		loregression_train(model, spec1, spec2, (double) atoi(label));
 	}
 
 	return 0;
@@ -60,11 +59,10 @@ int prediction_hits(FILE *csv, int set_n, hashtable *specs, logistic_regression 
 		spec1 = search_hashTable_spec(specs, left_spec, &pos);
 		spec2 = search_hashTable_spec(specs, right_spec, &pos);
 
-		//TODO:
-		//prediction = loregression_predict(model, spec1, spec2);
-		prediction = 1;
+		prediction = loregression_predict(model, spec1, spec2);
 
-		printf("%s,%s (%s) => %d\n", left_spec, right_spec, label, prediction);
+		//DEBUG:
+		//printf("%s,%s (%s) => %d\n", left_spec, right_spec, label, prediction);
 
 		if (prediction == atoi(label))
 			hits++;
