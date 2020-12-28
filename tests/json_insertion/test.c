@@ -20,8 +20,9 @@
 #include "common.h"
 #include "hashtable.h"
 #include "operations.h"
+#include "json.h"
 
-int make_tmp_json(node *spec, char *tmp_template) {
+int make_tmp_json(node *spec, char *tmp_template, int *lines) {
 	int fd;
 	FILE *tmp_json;
 
@@ -39,29 +40,40 @@ int make_tmp_json(node *spec, char *tmp_template) {
 
 	/* Write spec, formatted as JSON */
 	fputs("{\n", tmp_json);
+	*lines = 2;
 
-	for (int i = 0; i < spec->fieldCount; ++i) {
-		fprintf(tmp_json, "    \"%s\": ", spec->fields[i].property);
+	int counter = 0;	//counter of fields written
 
-		if (spec->fields[i].cnt == 1) {
-			fprintf(tmp_json, "\"%s\"", spec->fields[i].values[0]);
-		} else {
-			fputs("[\n", tmp_json);
+	for (int i = 0; i < spec->fields->tableSize; i++) {
+		field *f = spec->fields->list[i];
 
-			for (int j = 0; j < spec->fields[i].cnt; j++) {
-				fprintf(tmp_json, "        \"%s\"", spec->fields[i].values[j]);
+		while(f != NULL) {
+			counter++;
+			(*lines)++;
+			fprintf(tmp_json, "    \"%s\": ", f->property);
 
-				if (j < spec->fields[i].cnt - 1)
-					fputs(",\n", tmp_json);
-				else
-					fputs("\n    ]", tmp_json);
+			if (f->cnt == 1) {
+				fprintf(tmp_json, "\"%s\"", f->values[0]);
+			} else {
+				fputs("[\n", tmp_json);
+
+				for (int j = 0; j < f->cnt; j++) {
+					fprintf(tmp_json, "        \"%s\"", f->values[j]);
+					(*lines)++;
+					if (j < f->cnt - 1){
+						fputs(",\n", tmp_json);
+					}else {
+						fputs("\n    ]", tmp_json);
+						(*lines)++;
+					}
+				}
 			}
+
+			fputs(",\n", tmp_json);
+
+			f = f->next;
 		}
 
-		if (i < spec->fieldCount - 1)
-			fputs(",\n", tmp_json);
-		else
-			fputc('\n', tmp_json);
 	}
 
 	fputc('}', tmp_json);
@@ -70,10 +82,9 @@ int make_tmp_json(node *spec, char *tmp_template) {
 	return 0;
 }
 
-int compare_json(char *json_filename, char *tmp_filename) {
+int compare_json(char *json_filename, char *tmp_filename, int n_lines) {
 	FILE *json, *tmp_json;
 	char *line, *tmp_line;
-	unsigned long line_n = 0;
 
 	line = malloc(LINE_SIZE);
 	if (!TEST_CHECK(line != NULL)) {
@@ -99,15 +110,31 @@ int compare_json(char *json_filename, char *tmp_filename) {
 		return errno;
 	}
 
+	int cnt=0;	//counter of lines checked
 	/* Line-by-line comparison */
 	while (fgets(line, LINE_SIZE, json)) {
-		line_n++;
+		int flag = 0;
+		cnt++;
 
-		TEST_CHECK(fgets(tmp_line, LINE_SIZE, tmp_json) != NULL);
-		TEST_MSG("%s:%lu:\nUnexpected EOF in tmp_json", json_filename, line_n);
+		//in our temporary json file we expect ",\n" (for the sake of this test) on line (n_lines - 1)
+		if (cnt == n_lines - 1) {
+			int len = strlen(line);
+			line[len-1] = ',';
+			line[len] = '\n';
+			line[len+1] = '\0';
+		}
 
-		TEST_CHECK(!strcmp(line, tmp_line));
-		TEST_MSG("%s:%lu:\nExpected: '%s'\nGot: '%s'", json_filename, line_n, line, tmp_line);
+		fseek(tmp_json, 0, SEEK_SET);
+		while (fgets(tmp_line, LINE_SIZE, tmp_json)) {
+			if(strcmp(line, tmp_line) == 0) {
+				flag = 1;
+				break;
+			}
+		}
+
+		TEST_CHECK(flag == 1);
+		TEST_MSG("Data corrupted");
+
 	}
 
 	free(line);
@@ -119,9 +146,63 @@ int compare_json(char *json_filename, char *tmp_filename) {
 	return 0;
 }
 
+
+int insert_specs(hashtable *hash_table, char *dataset_x) {
+	DIR *dir;
+	struct dirent *dirent;
+
+	char path[1024], *extention;
+
+	char *spec_id;
+	hashtable *spec_fields = NULL;
+
+	if (!(dir = opendir(dataset_x))) {
+		perror(dataset_x);
+		return errno;
+	}
+
+	/* The path buffer will be modified for each spec, to get the ID format */
+	spec_id = path;
+
+	while ((dirent = readdir(dir))) {
+		/* Skip dot-files/folders, like ".." */
+		if (dirent->d_name[0] == '.')
+			continue;
+
+		/* Get the full path to the current dir entry (folder or .json) */
+		sprintf(path, "%s/%s", dataset_x, dirent->d_name);
+
+		/* Recurse into site (e.g. www.ebay.com) subdirectories
+		 * NOTE: DT_UNKNOWN for some filesystems */
+		if (dirent->d_type == DT_DIR) {
+			insert_specs(hash_table, path);
+		} else {
+			/* Skip non-json files */
+			if (!(extention = strrchr(path, '.')))
+				continue;
+			else if (strcmp(extention, ".json"))
+				continue;
+
+			read_spec_from_json(path, &spec_fields);
+
+			/* Create spec id (e.g. buy.net//10) */
+			sprintf(spec_id, "%s//%s", basename(dataset_x), dirent->d_name);
+			/* Remove extension to get final id */
+			*strrchr(spec_id, '.') = '\0';
+
+			/* Ready for hashtable insertion */
+			insert_entry(hash_table, spec_id, &spec_fields);
+		}
+	}
+
+	closedir(dir);
+
+	return 0;
+}
+
+
 void test_json_insertion(void) {
 	hashtable hash_table = hashtable_init(5);
-	bow vocabulary;
 
 	node* spec;
 	char *dataset_x = "json_insertion/dataset_x";
@@ -135,7 +216,7 @@ void test_json_insertion(void) {
 
 	printf("Dataset X at: %s\n", dataset_x);
 
-	TEST_CHECK(!insert_dataset_x(&hash_table, dataset_x, &vocabulary));
+	TEST_CHECK(!insert_specs(&hash_table, dataset_x));
 
 	/* For every spec in the hash_table, check against the original JSON */
 	for (int i = 0; i < hash_table.tableSize; ++i) {
@@ -145,9 +226,10 @@ void test_json_insertion(void) {
 			sprintf(json_filename, "%s/%s.json", dataset_x, spec->id);
 			strcpy(tmp_template + 10, "XXXXXX");
 
-			if (!make_tmp_json(spec, tmp_template)) {
+			int n_lines;
+			if (!make_tmp_json(spec, tmp_template, &n_lines)) {
 				printf("Comparing %s\n", spec->id);
-				compare_json(json_filename, tmp_template);
+				compare_json(json_filename, tmp_template, n_lines);
 
 				unlink(tmp_template);
 			}

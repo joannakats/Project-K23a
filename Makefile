@@ -29,8 +29,7 @@ TARGET = specs
 
 TEST_OBJ = $(patsubst %.c,%.o,$(wildcard tests/*/*.c))
 # TODO: Fix TESTS for fields hashtable
-TEST_TARGETS = tests/test_vocabulary tests/test_spec tests/test_clique tests/test_hstable
-#tests/test_json_insertion
+TEST_TARGETS = tests/test_vocabulary tests/test_spec tests/test_clique tests/test_hstable tests/test_json_insertion
 
 TARGETS = $(TARGET) $(TEST_TARGETS)
 
@@ -44,7 +43,7 @@ $(TARGETS):
 
 ## Specific dependencies for executables (object files + $(HDR))
 $(TARGET): $(SRC_OBJ) $(HDR)
-tests/test_json_insertion: tests/json_insertion/test.o $(filter-out src/main.o,$(SRC_OBJ)) $(HDR)
+tests/test_json_insertion: tests/json_insertion/test.o src/json.o $(filter-out src/main.o,$(SRC_OBJ)) $(HDR)
 tests/test_vocabulary: tests/vocabulary/test.o src/hashtable.o src/spec_hashtable.o src/spec.o src/clique.o src/preprocessing.o src/vocabulary.o $(HDR)
 tests/test_hstable: tests/hashtable/test.o src/hashtable.o src/spec_hashtable.o src/spec.o src/clique.o src/json.o $(HDR)
 tests/test_spec: tests/spec/test.o src/hashtable.o src/spec.o src/clique.o src/json.o $(HDR)
