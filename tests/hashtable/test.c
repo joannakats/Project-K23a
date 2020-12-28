@@ -167,6 +167,7 @@ int join_specs(hashtable *hash_table, char *dataset_w) {
 
 void test_print_relations(void) {
 	int ret = 0;
+	int counter = 0, counter1;
 	FILE *fp, *fp1;
 	char *dataset_x = "hashtable/2013_camera_specs";
 	// char *dataset_w = "hashtable/sigmod_large_labelled_dataset.csv";
@@ -189,19 +190,30 @@ void test_print_relations(void) {
 			int w = print_relations(&hash_table, fp);
 			TEST_CHECK(w != 0);
 
+			/* open file created for reading */
+			if (!(fp1 = fopen("output", "r"))) {
+				perror("output");
+				return;
+			}
+
 			fseek(fp, 0, SEEK_SET);
 			/* read every line of this file */
 			while (fgets(line1, sizeof(line1), fp)) {
+				counter++;
 				token = strtok(line1, ",");
 				strcpy(left1, token);
 				token = strtok(NULL, ",");
 				strcpy(right1, token);
 
-				fp1 = fp;
-
+				fseek(fp1, 0, SEEK_SET);
+				counter1 = 0;
 				/* read lines down from line1 in order to compare */
 				while (fgets (line2, sizeof(line2), fp1)) {
-					// token = NULL;
+					counter1++;
+					if(counter1 <= counter) {
+						continue;
+					}
+
 					token = strtok(line2, ",");
 					strcpy(left2, token);
 					token = strtok(NULL, ",");
@@ -216,10 +228,11 @@ void test_print_relations(void) {
 						TEST_CHECK(strcmp(left2, right1) != 0);
 						TEST_MSG("DUPLICATES FOUND");
 					}
-					
+
 				}
 			}
 			fclose(fp);
+			fclose(fp1);
 		}
 	}
 	delete_hashtable(&hash_table);
