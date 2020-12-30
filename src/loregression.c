@@ -90,4 +90,5 @@ int loregression_predict(logistic_regression *loregression,node *spec_left,node 
 
 	free(x);
 	return (sigmoid(pred) >= 0.5 ? 1 : 0);
+	//return (sigmoid(pred) >= 0.1 ? 1 : 0);	//alternative threshold
 }
