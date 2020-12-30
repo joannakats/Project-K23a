@@ -9,18 +9,15 @@
  * property fields. ("": "value")
  */
 
-#include <dirent.h>
-#include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "acutest.h"
 #include "common.h"
 #include "hashtable.h"
 #include "operations.h"
-#include "json.h"
+#include "preprocessing.h"
 
 int make_tmp_json(node *spec, char *tmp_template, int *lines) {
 	int fd;
@@ -146,63 +143,9 @@ int compare_json(char *json_filename, char *tmp_filename, int n_lines) {
 	return 0;
 }
 
-
-int insert_specs(hashtable *hash_table, char *dataset_x) {
-	DIR *dir;
-	struct dirent *dirent;
-
-	char path[1024], *extention;
-
-	char *spec_id;
-	hashtable *spec_fields = NULL;
-
-	if (!(dir = opendir(dataset_x))) {
-		perror(dataset_x);
-		return errno;
-	}
-
-	/* The path buffer will be modified for each spec, to get the ID format */
-	spec_id = path;
-
-	while ((dirent = readdir(dir))) {
-		/* Skip dot-files/folders, like ".." */
-		if (dirent->d_name[0] == '.')
-			continue;
-
-		/* Get the full path to the current dir entry (folder or .json) */
-		sprintf(path, "%s/%s", dataset_x, dirent->d_name);
-
-		/* Recurse into site (e.g. www.ebay.com) subdirectories
-		 * NOTE: DT_UNKNOWN for some filesystems */
-		if (dirent->d_type == DT_DIR) {
-			insert_specs(hash_table, path);
-		} else {
-			/* Skip non-json files */
-			if (!(extention = strrchr(path, '.')))
-				continue;
-			else if (strcmp(extention, ".json"))
-				continue;
-
-			read_spec_from_json(path, &spec_fields);
-
-			/* Create spec id (e.g. buy.net//10) */
-			sprintf(spec_id, "%s//%s", basename(dataset_x), dirent->d_name);
-			/* Remove extension to get final id */
-			*strrchr(spec_id, '.') = '\0';
-
-			/* Ready for hashtable insertion */
-			insert_entry(hash_table, spec_id, &spec_fields);
-		}
-	}
-
-	closedir(dir);
-
-	return 0;
-}
-
-
 void test_json_insertion(void) {
-	hashtable hash_table = hashtable_init(5);
+	hashtable hash_table = {0};
+	bow *vocabulary = NULL;
 
 	node* spec;
 	char *dataset_x = "json_insertion/dataset_x";
@@ -211,12 +154,20 @@ void test_json_insertion(void) {
 	char json_filename[1024];
 	char tmp_template[] = "/tmp/spec.XXXXXX";
 
+	hash_table = hashtable_init(5);
+	TEST_ASSERT(hash_table.list != NULL);
+
+	vocabulary = bow_init(13);
+	TEST_ASSERT(vocabulary != NULL);
+
 	TEST_ASSERT(tmp_template != NULL);
 	TEST_MSG("tmp_template: %s", strerror(errno));
 
 	printf("Dataset X at: %s\n", dataset_x);
 
-	TEST_CHECK(!insert_specs(&hash_table, dataset_x));
+	TEST_ASSERT(!preprocessing_init("../stopwords.txt"));
+
+	TEST_ASSERT(!insert_dataset_x(&hash_table, dataset_x, vocabulary));
 
 	/* For every spec in the hash_table, check against the original JSON */
 	for (int i = 0; i < hash_table.tableSize; ++i) {
@@ -238,7 +189,9 @@ void test_json_insertion(void) {
 		}
 	}
 
+	preprocessing_destroy();
 	delete_hashtable(&hash_table);
+	bow_delete(vocabulary);
 }
 
 TEST_LIST = {
