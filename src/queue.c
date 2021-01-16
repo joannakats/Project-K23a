@@ -31,7 +31,7 @@ void queue_push(Queue* q,Task* task){ //TODO check if lock needs here and not in
 	}
 }
 
-*we will check before if queue is empty*/
+/*we will check before if queue is empty*/
 Task queue_pull(Queue* q){
 	Task task;
 	if(q->head!=NULL){
