@@ -16,4 +16,4 @@ typedef struct JobScheduler{
 void jobsch_init(int threadNumber); 
 void executeJob(Queue* q,Task* task); //TODO 
 void* thread_function(void* args); //
-void enqueueJob(Queue* q,int* start, int* end);
+void enqueueJob(Queue* q,void (*function_push)(void*), void* arg_push);

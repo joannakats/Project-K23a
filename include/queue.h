@@ -4,8 +4,9 @@
 #define _TQUEUE_H
 
 typedef struct Task{
-	int* start;
-	int*end;
+	// may need int type; //for the type of task..for train is 1 ,for test is 2.
+	void (*taskFunction)(void*); //
+	void* arg;
 }Task;
 
 typedef struct qnode{
@@ -21,7 +22,7 @@ typedef struct Queue{
 
 Queue queue_init(void);
 int empty(Queue* q);
-void queue_push(Queue* q,int* start,int* end);
+void queue_push(Queue* q,Task* task);
 Task queue_pull(Queue* q);
 
 #endif

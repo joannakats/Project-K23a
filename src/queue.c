@@ -14,11 +14,10 @@ int empty(Queue* q){
 	return (q->qcount);
 }
 
-void queue_push(Queue* q,int* start,int* end){
+void queue_push(Queue* q,Task* task){ //TODO check if lock needs here and not in enqueuejob
 	qnode* temp;
 	temp=malloc(sizeof(qnode));
-	temp->task.start=start;
-	temp->task.end=end;
+	temp->task=*task;
 	temp->next=NULL;
 	//check if queue is empty
 	if(empty(q)==0){
@@ -32,6 +31,7 @@ void queue_push(Queue* q,int* start,int* end){
 	}
 }
 
+*we will check before if queue is empty*/
 Task queue_pull(Queue* q){
 	Task task;
 	if(q->head!=NULL){
@@ -42,10 +42,5 @@ Task queue_pull(Queue* q){
 		q->qcount--;
 		free(temp);
 	return task;
-	}else{
-		task.start=NULL;
-		task.end=NULL;
-		printf("not a task in the queue\n");
-		return task;
 	}
 }
