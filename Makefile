@@ -1,6 +1,6 @@
 MAKEFLAGS = -j$(shell nproc)
 CFLAGS = -Wall -Wextra -pedantic -Iinclude
-LIBS = -lm -lpthread
+LIBS = -pthread -lm
 
 # Run make DEBUG=1 for debug build
 DEBUG ?= 0
