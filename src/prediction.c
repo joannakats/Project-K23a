@@ -4,8 +4,10 @@
 #include "loregression.h"
 #include "prediction.h"
 #include "spec_hashtable.h"
+#include "thread_pool.h"
 
 logistic_regression *prediction_init(bow *vocabulary) {
+	jobsch_init(4);
 	return loregression_init(vocabulary->ht.count);
 }
 
@@ -17,21 +19,34 @@ int prediction_training(FILE *csv, int training_n, hashtable *specs, logistic_re
 	node *spec1, *spec2;
 	int pos;
 
-	for (line_n = 1; line_n <= training_n; line_n++) {
-		if (!fgets(line, sizeof(line), csv)) {
-			perror("Reading Dataset W for training");
-			return errno;
-		}
+	// for (line_n = 1; line_n <= training_n; line_n++) {
+	// 	if (!fgets(line, sizeof(line), csv)) {
+	// 		perror("Reading Dataset W for training");
+	// 		return errno;
+	// 	}
 
-		left_spec = strtok_r(line, ",", &saveptr);
-		right_spec = strtok_r(NULL, ",", &saveptr);
-		label = strtok_r(NULL, ",\n", &saveptr);
+	// 	left_spec = strtok_r(line, ",", &saveptr);
+	// 	right_spec = strtok_r(NULL, ",", &saveptr);
+	// 	label = strtok_r(NULL, ",\n", &saveptr);
 
-		spec1 = search_hashTable_spec(specs, left_spec, &pos);
-		spec2 = search_hashTable_spec(specs, right_spec, &pos);
+	// 	spec1 = search_hashTable_spec(specs, left_spec, &pos);
+	// 	spec2 = search_hashTable_spec(specs, right_spec, &pos);
 
-		loregression_train(model, spec1, spec2, (double) atoi(label));
-	}
+	// 	loregression_train(model, spec1, spec2, (double) atoi(label));
+	// }
+
+	// See if thread prints test job
+	Job test;
+
+	test.type = train;
+	test.start = 0;
+	test.end = 36;
+
+	submit_job(&test);
+	puts("got here");
+
+	sleep(3);
+	exit(0);
 
 	return 0;
 }

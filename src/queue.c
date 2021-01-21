@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "queue.h"
+#include "thread_pool.h"
 
 Queue queue_init(void){
 	Queue q;
@@ -11,16 +12,16 @@ Queue queue_init(void){
 }
 /* if the queue is empty return 1 else 0 */
 int empty(Queue* q){
-	return (q->qcount);
+	return (q->qcount == 0);
 }
 
-void queue_push(Queue* q,Task* task){ //TODO check if lock needs here and not in enqueuejob
+void queue_push(Queue* q,Job* job) {
 	qnode* temp;
 	temp=malloc(sizeof(qnode));
-	temp->task=*task;
+	temp->job=*job;
 	temp->next=NULL;
 	//check if queue is empty
-	if(empty(q)==0){
+	if (empty(q)) {
 		q->head=temp;
 		q->tail=temp;
 		q->qcount++;
@@ -32,15 +33,16 @@ void queue_push(Queue* q,Task* task){ //TODO check if lock needs here and not in
 }
 
 /*we will check before if queue is empty*/
-Task queue_pull(Queue* q){
-	Task task;
+Job queue_pull(Queue* q){
+	Job job = {0};
 	if(q->head!=NULL){
-		task=q->head->task;
+		job=q->head->job;
 		qnode* temp;
 		temp=q->head;
 		q->head=q->head->next;
 		q->qcount--;
 		free(temp);
-	return task;
 	}
+
+	return job;
 }

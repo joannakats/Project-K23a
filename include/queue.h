@@ -1,16 +1,19 @@
-#include <stdio.h>
-
 #ifndef _TQUEUE_H
 #define _TQUEUE_H
 
-typedef struct Task{
-	// may need int type; //for the type of task..for train is 1 ,for test is 2.
-	void (*taskFunction)(void*); //
-	void* arg;
-}Task;
+enum job_type {
+	train,
+	test
+};
+
+typedef struct Job {
+	enum job_type type;
+	long start; // byte offset in dataset W' (for fseek)
+	long end;
+} Job;
 
 typedef struct qnode{
-	Task task; // check the type
+	Job job; // check the type
 	struct qnode* next;
 }qnode;
 
@@ -22,7 +25,7 @@ typedef struct Queue{
 
 Queue queue_init(void);
 int empty(Queue* q);
-void queue_push(Queue* q,Task* task);
-Task queue_pull(Queue* q);
+void queue_push(Queue* q, Job* job);
+Job queue_pull(Queue* q);
 
 #endif
