@@ -10,6 +10,10 @@
 
 struct JobScheduler jobscheduler;
 
+int size;
+int *actual_label;
+double *loss;
+
 void *worker_thread(void *args);
 
 // need an initialize and delete for job scheduler
@@ -76,6 +80,6 @@ void *worker_thread(void *args) {
 		pthread_mutex_unlock(&jobscheduler.mutex);
 
 		// Do things
-		printf("Got job %d: [%ld, %ld]\n", job.type, job.start, job.end);
+		printf("Got job type %d: [%ld, %ld]\n", job.type, job.start_line, job.end_line);
 	}
 }

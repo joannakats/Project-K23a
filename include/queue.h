@@ -8,8 +8,9 @@ enum job_type {
 
 typedef struct Job {
 	enum job_type type;
-	long start; // byte offset in dataset W' (for fseek)
-	long end;
+	long start_offset; // byte offset in dataset W' (for fast fseek)
+	long start_line;
+	long end_line; // Needed because batch might be less than BATCH_SIZE
 } Job;
 
 typedef struct qnode{

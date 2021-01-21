@@ -8,7 +8,8 @@
 
 #include "queue.h"
 
-#define BATCH_N 512 // TODO: mention speeds with 1024 or sth else, in Documentation
+#define THREADS 4
+#define BATCH_SIZE 512 // TODO: mention speeds with 1024 or sth else, in Documentation
 
 typedef struct JobScheduler {
 	int execution_threads; //number of execution threads
@@ -20,7 +21,7 @@ typedef struct JobScheduler {
 
 
 void jobsch_init(int threadNumber);
-int submit_job(Job *job);
+int submit_job(Job *job); //TODO: Job parameters instead of job struct?
 //void executeJob(Queue* q, Job* job); // Maybe master thread creates the job parameters and passes them here
 //void enqueueJob(Queue* q,void (*function_push)(void*), void* arg_push);
 
