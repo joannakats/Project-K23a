@@ -33,4 +33,7 @@ void clique_rearrange(node *spec1, node *spec2);
 anti_clique *anti_clique_init(clique *c, anti_clique *head);
 void anti_clique_insert(node *spec1, node *spec2);
 void print_negativeCorrelation(clique *host, node *spec, anti_clique *head, int *cnt, FILE *fp);
+
+int find_positive_conflicts(node *spec1, node *spec2);
+int find_negative_conflicts(node *spec1, node *spec2);
 #endif

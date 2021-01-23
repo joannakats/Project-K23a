@@ -9,11 +9,24 @@ void insert_entry(hashtable* hsTable,char* id,hashtable **fields) {
 	hsTable->count++;
 }
 
+
+/* used for pseudo cliques in validation */
+/* returns spec that has just been inserted */
+node *insert_entry_and_return(hashtable* hsTable, char* id) {
+	int index = hash(id, hsTable->tableSize);
+	hsTable->list[index] = spec_insert(hsTable->list[index],id, NULL);
+	hsTable->count++;
+
+	return hsTable->list[index];
+}
+
+
 node *search_hashTable_spec(hashtable* hsTable,char* id,int *pos){
 	int index=hash(id,hsTable->tableSize);
 	node *found=search_spec(hsTable->list[index],id,pos);
 	return found;
 }
+
 
 /*The following function search for left and right spec.If both specs are found
 left spec will point to its list of clique nodes and right spec
@@ -27,6 +40,7 @@ void hash_table_join(hashtable* hsTable,char* left_id,char* right_id){
 
 }
 
+
 void hash_table_notjoin(hashtable* hsTable,char* left_id,char* right_id){
 	int left_pos,right_pos;
 	node *left_spec=search_hashTable_spec(hsTable,left_id,&left_pos);
@@ -35,6 +49,7 @@ void hash_table_notjoin(hashtable* hsTable,char* left_id,char* right_id){
 		anti_clique_insert(left_spec,right_spec);
 
 }
+
 
 /* Τhe following function prints the first node of the clique with the following nodes,
 the second with its next ones and so on for every clique list. */

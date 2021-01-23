@@ -253,3 +253,36 @@ void delete_antiClique(anti_clique *head) {
 		free(temp);
 	}
 }
+
+
+/* case: spec1, spec2, 1 */
+/* check if their cliques definitely are not alike */
+/* no need to check both anti_clique lists since negative correlation is a two way relation */
+int find_positive_conflicts(node *spec1, node *spec2) {
+	clique *clique1 = spec1->clique;
+	clique *clique2 = spec2->clique;
+	anti_clique *ac1 = clique1->NegCorrel;
+
+	/* traverse anti_clique list to see if there is a node that points to spec2's clique
+	   if so, then we've just found a conflict */
+	while (ac1 != NULL) {
+		if (ac1->diff == clique2) {	//conflict
+			return 1;
+		}
+
+		ac1 = ac1->next;	//move to the next anti_clique node
+	}
+
+	return 0; //no conflict found
+}
+
+
+/* case: spec1, spec2, 0 */
+/* check if spec1 and spec2 belong to the same clique */
+int find_negative_conflicts(node *spec1, node *spec2) {
+	if (spec1->clique == spec2->clique) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
