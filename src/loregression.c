@@ -1,6 +1,7 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+
 #include "loregression.h"
 #include "vocabulary.h"
 
@@ -36,59 +37,66 @@ void loregression_delete(logistic_regression *loregression){
      return 1.0/(1.0 +exp(-x));
  }
 
-static double *make_x(node *spec_left,node *spec_right,int size){
-
-	double *x=malloc(size *sizeof(double));
+static void compute_x(double *x, int size, node *spec_left, node *spec_right) {
 	for(int i=0;i<size;i++){
 		x[i]=fabs(spec_left->tf_idf_factors[i] - spec_right->tf_idf_factors[i]);
 	}
-	return x;
 }
 
 /* The goal is to find the regression accounting function p(x) ,p(xi) near 0 or 1. */
-int loregression_train(logistic_regression *loregression,node *spec_left,node *spec_right,double label){
-	int size=loregression->size;
-	double f= loregression->b;
-	double *x;
-	double loss_j,pred;
-	
-	x=make_x(spec_left,spec_right,size);
-	
-	//compute f=w[i]*x[i]+b
-	for(int i=0;i<size;i++){
-		f+=loregression->w[i]*x[i]; 
-	}
-	
-	//p=sigmoid(f)
-	pred=sigmoid(f);
-	
-	for(int k=0;k<size;k++){
-		//cost
-		loss_j=( pred -label)*x[k];
-		//weight
-		loregression->w[k]-= LR*loss_j;
-	}
+void loregression_loss(logistic_regression *loregression, struct line *batch, long a, long b) {
+	int size = loregression->size;
+	long i, j;
+	double f;
 
-	free(x);
-	return 0;
+	/* Handle computation for part of batch, set by job */
+	for (i = a; i <= b; i++) {
+		batch[i].x = malloc(size * sizeof(double));
+		compute_x(batch[i].x, size, batch[i].spec[0], batch[i].spec[1]);
+
+		/* Compute f(x) */
+		f = loregression->b;
+		for (j = 0; j < size; j++)
+			f += loregression->w[j] * batch[i].x[j];
+
+		/* No other thread writing on this specific position */
+		//TODO: IS this what the thread writes?
+		batch[i].loss = (sigmoid(f) - (double) batch[i].label);
+	}
 }
 
+/* Update weights after batch is done */
+void loregression_update_weights(logistic_regression *loregression, struct line *batch, long batch_size) {
+	long i, j;
+	double loss = 0, x;
 
+	for (i = 0; i < batch_size; i++)
+		loss += batch[i].loss;
 
+	for (j = 0; j < loregression->size; j++) {
+		x = 0;
+		for (i = 0; i < batch_size; i++)
+			x += batch[i].x[j];
+
+		//TODO: IS this what the master thread does? Maybe some average instead or sth?
+		loregression->w[j] -= LR * loss * x;
+	}
+}
 
 int loregression_predict(logistic_regression *loregression,node *spec_left,node *spec_right){
-	int size=loregression->size;
-	double *x;
-	double pred = loregression->b;
-	
-	x=make_x(spec_left,spec_right,size);
-	
-	for(int j=0;j<size ;j++){
-		pred+=loregression->w[j] *x[j] ;
-	}
+	//TODO
+	// int size=loregression->size;
+	// double *x;
+	// double pred = loregression->b;
+
+	// x=make_x(spec_left,spec_right,size);
+
+	// for(int j=0;j<size ;j++){
+	// 	pred+=loregression->w[j] *x[j] ;
+	// }
 
 
-	free(x);
-	return (sigmoid(pred) >= 0.5 ? 1 : 0);
-	//return (sigmoid(pred) >= 0.1 ? 1 : 0);	//alternative threshold
+	// free(x);
+	// return (sigmoid(pred) >= 0.5 ? 1 : 0);
+	// //return (sigmoid(pred) >= 0.1 ? 1 : 0);	//alternative threshold
 }

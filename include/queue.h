@@ -1,17 +1,7 @@
 #ifndef _TQUEUE_H
 #define _TQUEUE_H
 
-enum job_type {
-	train,
-	test
-};
-
-typedef struct Job {
-	enum job_type type;
-	long start_offset; // byte offset in dataset W' (for fast fseek)
-	long start_line;
-	long end_line; // Needed because batch might be less than BATCH_SIZE
-} Job;
+#include "job.h"
 
 typedef struct qnode{
 	Job job; // check the type

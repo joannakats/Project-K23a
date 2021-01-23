@@ -6,7 +6,6 @@
 
 #include "common.h"
 #include "json.h"
-#include "loregression.h"
 #include "operations.h"
 #include "prediction.h"
 #include "preprocessing.h"
@@ -113,8 +112,6 @@ static int partition_dataset_w(hashtable *hash_table, bow *vocabulary) {
 	long training_n, validation_n, test_n;
 	long line_total = 0;
 
-	logistic_regression *model;
-
 	/* Write out expanded dataset */
 	if (!(expanded = fopen("expanded.csv", "w+"))) {
 		perror("expanded.csv");
@@ -145,26 +142,24 @@ static int partition_dataset_w(hashtable *hash_table, bow *vocabulary) {
 	printf("Training: %10ld lines\nValidation: %8ld lines\nTest: %14ld lines\n", training_n, validation_n, test_n);
 
 	/* Partition expanded dataset */
-	/* TODO: init expanded dataset here? */
-	model = prediction_init(vocabulary);
+	prediction_init(vocabulary);
 
 	/* Start reading from the top */
 	rewind(expanded);
 
 	/* 1: Training */
 	fputs("Training model...\n", stderr);
-	prediction_training(expanded, training_n, hash_table, model);
+	prediction_training(expanded, training_n, hash_table);
 
-	/* 2: Validation set */
-	fputs("Validation set... ", stderr);
-	prediction_hits(expanded, validation_n, hash_table, model);
+	// /* 2: Validation set */
+	// fputs("Validation set... ", stderr);
+	// prediction_hits(expanded, validation_n, hash_table);
 
-	/* 3: Test set (We're not going for epochs right now) */
-	fputs("Testing set... ", stderr);
-	prediction_hits(expanded, test_n, hash_table, model);
+	// /* 3: Test set (We're not going for epochs right now) */
+	// fputs("Testing set... ", stderr);
+	// prediction_hits(expanded, test_n, hash_table);
 
-	/* TODO: maybe prediction destroy? */
-	loregression_delete(model);
+	prediction_destroy();
 
 	fclose(expanded);
 	return 0;

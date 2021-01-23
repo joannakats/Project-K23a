@@ -1,4 +1,6 @@
+#include <errno.h>
 #include <stdio.h>
+#include <sys/sysinfo.h>
 
 #include "common.h"
 #include "loregression.h"
@@ -6,45 +8,65 @@
 #include "spec_hashtable.h"
 #include "thread_pool.h"
 
-long min(long num1, long num2) {
-	return (num1 > num2 ) ? num2 : num1;
-}
+logistic_regression *model;
 
-logistic_regression *prediction_init(bow *vocabulary) {
-	jobsch_init(THREADS);
-	return loregression_init(vocabulary->ht.count);
-}
+int prediction_init(bow *vocabulary) {
+	model = loregression_init(vocabulary->ht.count);
 
-int prediction_training(FILE *csv, int training_n, hashtable *specs, logistic_regression *model) {
-	char line[512];
-	long i, line_n, step;
-	char *left_spec, *right_spec, *label, *saveptr;
+	if (!model)
+		return errno;
 
-	Job job;
-	job.type = train;
-
-	line_n = 1;
-	while (line_n <= training_n) {
-		job.start_offset = ftell(csv);
-		job.start_line = line_n;
-
-		step = min(BATCH_SIZE, training_n - line_n + 1);
-		 for (i = 1; i <= step; i++)
-		 	fgets(line, sizeof(line), csv);
-
-		line_n += step;
-		job.end_line = line_n - 1;
-
-		submit_job(&job);
-	}
-
-	sleep(3);
-	exit(0);
+	// Chose threads according to amount of cores, because why not
+	jobsch_init(model, min(get_nprocs(), 16));
 
 	return 0;
 }
 
-int prediction_hits(FILE *csv, int set_n, hashtable *specs, logistic_regression *model) {
+void prediction_destroy() {
+	loregression_delete(model);
+	jobsch_destroy();
+}
+
+int prediction_training(FILE *csv, int training_n, hashtable *specs) {
+	char line[512];
+	long i, line_n, batch_size;
+	char *left_spec, *right_spec, *label_str, *saveptr;
+
+	node *spec[2];
+	int pos, label;
+
+	// Split training dataset into mini-batches, run training
+	for (line_n = 1; line_n <= training_n; line_n += batch_size) {
+		batch_size = min(BATCH_SIZE, training_n - line_n + 1);
+
+		// Make batch
+		for (i = 0; i < batch_size; i++) {
+		 	if (!fgets(line, sizeof(line), csv)) {
+				perror("Reading Dataset W for training");
+				return errno;
+			}
+
+			left_spec = strtok_r(line, ",", &saveptr);
+			right_spec = strtok_r(NULL, ",", &saveptr);
+			label_str = strtok_r(NULL, ",\n", &saveptr);
+
+			spec[0] = search_hashTable_spec(specs, left_spec, &pos);
+			spec[1] = search_hashTable_spec(specs, right_spec, &pos);
+			label = atoi(label_str);
+
+			batch_push(spec[0], spec[1], label);
+		}
+
+		/* Calculate this batch (will be done in parallel) */
+		run_batch(train);
+
+		batch_destroy();
+	}
+
+	return 0;
+}
+
+int prediction_hits(FILE *csv, int set_n, hashtable *specs) {
 	char line[512];
 	long line_n, hits = 0;
 	char *left_spec, *right_spec, *label, *saveptr;

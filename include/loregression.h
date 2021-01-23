@@ -2,6 +2,7 @@
 #define LOREGRESSION_H
 
 #include "vocabulary.h"
+#include "job.h"
 
 typedef struct logistic_regression{
 	int size;
@@ -12,8 +13,9 @@ typedef struct logistic_regression{
 
 logistic_regression *loregression_init(int voc_size);
 void loregression_delete(logistic_regression *loregression);
-int loregression_train(logistic_regression *loregression,node *spec_left,node *spec_right,double label);
 double sigmoid(double x);
+void loregression_loss(logistic_regression *loregression, struct line *batch, long a, long b);
+void loregression_update_weights(logistic_regression *loregression, struct line *batch, long batch_size);
 int loregression_predict(logistic_regression *loregression,node *spec_left,node *spec_right);
 
 #endif /* LOREGRESSION_H aka logistic regression */
