@@ -34,7 +34,7 @@ void loregression_delete(logistic_regression *loregression){
 	free(loregression); //
 }
  double sigmoid(double x){
-     return 1.0/(1.0 +exp(-x));
+     return 1.0/(1.0 + exp(-x));
  }
 
 static void compute_x(double *x, int size, node *spec_left, node *spec_right) {
@@ -83,20 +83,21 @@ void loregression_update_weights(logistic_regression *loregression, struct line 
 	}
 }
 
+
 int loregression_predict(logistic_regression *loregression,node *spec_left,node *spec_right){
-	//TODO
-	// int size=loregression->size;
-	// double *x;
-	// double pred = loregression->b;
+	int size=loregression->size;
+	double *x = malloc(size * sizeof(double));
+	double pred = loregression->b;
 
-	// x=make_x(spec_left,spec_right,size);
+	compute_x(x, size, spec_left,spec_right);
 
-	// for(int j=0;j<size ;j++){
-	// 	pred+=loregression->w[j] *x[j] ;
-	// }
+	for(int j=0;j<size; j++){
+		pred += loregression->w[j]*x[j];
+	}
 
+	free(x);
 
-	// free(x);
-	// return (sigmoid(pred) >= 0.5 ? 1 : 0);
+	return (sigmoid(pred) >= 0.5 ? 1 : 0);
 	// //return (sigmoid(pred) >= 0.1 ? 1 : 0);	//alternative threshold
+	///////////////////////////////////////////////////////////////////////////////////
 }

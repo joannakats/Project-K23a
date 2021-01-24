@@ -119,7 +119,7 @@ void delete_specNode(node *spec) {
 	if (spec->bow_occurences)
 		free(spec->bow_occurences);
 
-	if (spec->bow_occurences)
+	if (spec->tf_idf_factors)
 		free(spec->tf_idf_factors);
 
 	free(spec);

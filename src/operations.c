@@ -10,6 +10,7 @@
 #include "prediction.h"
 #include "preprocessing.h"
 #include "vocabulary.h"
+#include "validation.h"
 
 /* Phase 1 - Insert Dataset X in data structures */
 int insert_dataset_x(hashtable *hash_table, char *dataset_x, bow *vocabulary) {
@@ -151,9 +152,9 @@ static int partition_dataset_w(hashtable *hash_table, bow *vocabulary) {
 	fputs("Training model...\n", stderr);
 	prediction_training(expanded, training_n, hash_table);
 
-	// /* 2: Validation set */
-	// fputs("Validation set... ", stderr);
-	// prediction_hits(expanded, validation_n, hash_table);
+	/* 2: Validation set */
+	fputs("Validation set... ", stderr);
+	validation(expanded, validation_n, hash_table, vocabulary);
 
 	// /* 3: Test set (We're not going for epochs right now) */
 	// fputs("Testing set... ", stderr);
@@ -222,8 +223,8 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 				fputs("[Partitioning Derived Dataset W']\n", stderr);
 				if (!(ret = partition_dataset_w(&hash_table, vocabulary))) {
 
-					fputs("[Writing output csv (cliques)]\n", stderr);
-					ret = print_pairs_csv(&hash_table, output);
+					// fputs("[Writing output csv (cliques)]\n", stderr);
+					// ret = print_pairs_csv(&hash_table, output);
 				}
 			}
 		}

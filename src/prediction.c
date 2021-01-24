@@ -3,7 +3,6 @@
 #include <sys/sysinfo.h>
 
 #include "common.h"
-#include "loregression.h"
 #include "prediction.h"
 #include "spec_hashtable.h"
 #include "thread_pool.h"
@@ -22,10 +21,17 @@ int prediction_init(bow *vocabulary) {
 	return 0;
 }
 
+
+logistic_regression *get_model() {
+	return model;
+}
+
+
 void prediction_destroy() {
 	loregression_delete(model);
 	jobsch_destroy();
 }
+
 
 int prediction_training(FILE *csv, int training_n, hashtable *specs) {
 	char line[512];

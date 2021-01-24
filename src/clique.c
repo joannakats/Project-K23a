@@ -281,8 +281,8 @@ int find_positive_conflicts(node *spec1, node *spec2) {
 /* check if spec1 and spec2 belong to the same clique */
 int find_negative_conflicts(node *spec1, node *spec2) {
 	if (spec1->clique == spec2->clique) {
-		return 1;
+		return 1;	//conflict
 	} else {
-		return 0;
+		return 0;	//no conflict
 	}
 }

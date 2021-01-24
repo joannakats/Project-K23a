@@ -1,4 +1,5 @@
 #include "spec.h"
+#include "vocabulary.h"
 #ifndef VALIDATION_H_
 #define VALIDATION_H_
 
@@ -19,8 +20,10 @@ void insert(conflict_list *list, node *spec1, node *spec2, bool type);
 int isEmpty(conflict_list *list);
 void print_conflict_list(conflict_list *list);
 
-node *insert_into_structs(hashtable *hs, char *specid);
+node *insert_into_structs(hashtable *hs, char *specid, hashtable *specs, bow *vocabulary);
 void get_specids(char *line, char *spec1, char *spec2, int *label);
 int search_for_conflicts(node *spec1, node *spec2, bool type);
+void resolve_conflicts(hashtable *hs, conflict_list *list);
+void validation(FILE *csv, int set_n, hashtable *specs, bow *vocabulary);
 
 #endif
