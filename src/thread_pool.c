@@ -155,7 +155,7 @@ void jobsch_destroy() {
 
 void *worker_thread(void *arg) {
 	Job job;
-
+	int thread_hits=0;
 	// Unused warning
 	(void) arg;
 
