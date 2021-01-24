@@ -286,3 +286,59 @@ int find_negative_conflicts(node *spec1, node *spec2) {
 		return 0;	//no conflict
 	}
 }
+
+
+/* removes negative correlation only for one direction */
+void remove_negCorrelation(clique *clique1, clique *clique2) {
+	anti_clique *ac1 = clique1->NegCorrel;
+	anti_clique *prev = NULL;
+
+	while (ac1 != NULL) {
+		if (ac1->diff == clique2) {
+
+			if (prev == NULL) {
+				clique1->NegCorrel = ac1->next;
+				free(ac1);
+				break;
+			}
+
+			prev->next = ac1->next;
+			free(ac1);
+			break;
+		}
+
+		prev = ac1;
+		ac1 = ac1->next;
+	}
+}
+
+
+void split_clique(node *spec1, node *spec2) {
+	cliqueNode *cn1, *prev;
+	cn1 = spec1->clique->head;
+	prev = NULL;
+
+	/* traverse list to find the cliqueNode that points to spec2 in order to delete it */
+	while (cn1 != NULL) {
+		if(cn1->spec == spec2) {
+			if (prev == NULL) {
+				spec1->clique->head = cn1->next;
+				free(cn1);
+				break;
+			}
+
+			prev->next = cn1->next;
+			free(cn1);
+			break;
+		}
+
+		prev = cn1;
+		cn1 = cn1->next;
+	}
+
+	/* create a clique for spec2 */
+	spec2->clique = clique_init(spec2);
+
+	/* insert a negative correlation between spec1 and spec2 */
+	anti_clique_insert(spec1, spec2);
+}

@@ -101,3 +101,65 @@ int loregression_predict(logistic_regression *loregression,node *spec_left,node 
 	// //return (sigmoid(pred) >= 0.1 ? 1 : 0);	//alternative threshold
 	///////////////////////////////////////////////////////////////////////////////////
 }
+
+
+double loregression_possibility(logistic_regression *loregression,node *spec_left,node *spec_right) {
+	int size=loregression->size;
+	double *x = malloc(size * sizeof(double));
+	double pred = loregression->b;
+
+	compute_x(x, size, spec_left,spec_right);
+
+	for(int j=0;j<size; j++){
+		pred += loregression->w[j]*x[j];
+	}
+
+	free(x);
+
+	return sigmoid(pred);
+}
+
+
+/* updates weights of a newly merged clique */
+void update_weights_of_clique(logistic_regression *model, clique *c) {
+	cliqueNode *cn1, *cn2;
+	cn1 = c->head;
+
+	while(cn1 != NULL) {
+		cn2 = cn1->next;
+
+		while(cn2 != NULL) {
+			loregression_update_weights_of_pair(model, cn1->spec, cn2->spec, 1.0);
+
+			cn2 = cn2->next;
+		}
+		cn1 = cn1->next;
+	}
+}
+
+
+void loregression_update_weights_of_pair(logistic_regression *model, node *spec1, node *spec2, double label) {
+	int size = model->size;
+	double f = model->b;
+	double *x = malloc(size * sizeof(double));;
+	double loss_j, pred;
+
+	compute_x(x, size, spec1, spec2);
+
+	//compute f=w[i]*x[i]+b
+	for(int i=0;i<size;i++){
+		f+=model->w[i]*x[i];
+	}
+
+	//p=sigmoid(f)
+	pred=sigmoid(f);
+
+	for(int k=0;k<size;k++){
+		//cost
+		loss_j=( pred -label)*x[k];
+		//weight
+		model->w[k]-= LR*loss_j;
+	}
+
+	free(x);
+}

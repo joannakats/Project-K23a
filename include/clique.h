@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
+// #include "loregression.h"
 
 #ifndef _CLIQUE_H
 #define _CLIQUE_H
@@ -36,4 +37,6 @@ void print_negativeCorrelation(clique *host, node *spec, anti_clique *head, int 
 
 int find_positive_conflicts(node *spec1, node *spec2);
 int find_negative_conflicts(node *spec1, node *spec2);
+void remove_negCorrelation(clique *clique1, clique *clique2);
+void split_clique(node *spec1, node *spec2);
 #endif
