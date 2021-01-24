@@ -102,6 +102,7 @@ int loregression_predict(logistic_regression *loregression,node *spec_left,node 
 	///////////////////////////////////////////////////////////////////////////////////
 }
 
+<<<<<<< HEAD
 
 double loregression_possibility(logistic_regression *loregression,node *spec_left,node *spec_right) {
 	int size=loregression->size;
@@ -162,4 +163,33 @@ void loregression_update_weights_of_pair(logistic_regression *model, node *spec1
 	}
 
 	free(x);
+=======
+long loregression_pbatch(logistic_regression *loregression,struct line* batch,long a,long b){
+	int size=loregression->size;
+	long i, j;
+	double pred;
+	double *x=malloc(size* sizeof(double));
+
+	int binary_prediction;
+	long hits = 0;
+
+	for(i=a;i<=b;i++){
+		compute_x(x, size, batch[i].spec[0], batch[i].spec[1]);
+
+		//compute prediction
+		pred=loregression->b;
+		for(j = 0; j < size; j++){
+			pred+=loregression->w[j]*x[j];
+		}
+
+		// printf("batch problem hit\n");
+		binary_prediction = (sigmoid(pred) >= 0.5 ? 1 : 0);
+
+		if (batch[i].label == binary_prediction)
+			hits++;
+	}
+
+	free(x);
+	return hits;
+>>>>>>> 91d42321479d1e86884e9b1145bec5b8448bc6f3
 }
