@@ -9,6 +9,10 @@
 
 logistic_regression *model;
 
+logistic_regression *get_model() {
+	return model;
+}
+
 int prediction_init(bow *vocabulary) {
 	model = loregression_init(vocabulary->ht.count);
 
@@ -21,17 +25,10 @@ int prediction_init(bow *vocabulary) {
 	return 0;
 }
 
-
-logistic_regression *get_model() {
-	return model;
-}
-
-
 void prediction_destroy() {
 	loregression_delete(model);
 	jobsch_destroy();
 }
-
 
 int prediction_training(FILE *csv, int training_n, hashtable *specs) {
 	char line[512];
@@ -40,6 +37,8 @@ int prediction_training(FILE *csv, int training_n, hashtable *specs) {
 
 	node *spec[2];
 	int pos, label;
+
+	batch_destroy();
 
 	// Split training dataset into mini-batches, run training
 	for (line_n = 1; line_n <= training_n; line_n += batch_size) {
@@ -64,24 +63,28 @@ int prediction_training(FILE *csv, int training_n, hashtable *specs) {
 		}
 
 		/* Calculate this batch (will be done in parallel) */
-		run_batch(train,training_n);
-
+		run_batch(train);
 		batch_destroy();
 	}
 
 	return 0;
 }
 
-int prediction_hits(FILE *csv, int testing_n, hashtable *specs) {
+int prediction_hits(FILE *csv, int set_n, hashtable *specs) {
 	char line[512];
 	long line_n,batch_size=0,i;
 	char *left_spec, *right_spec, *labelptr, *saveptr;
 
 	node *spec1, *spec2;
 	int pos,label;
+
+	long hits;
+
+	batch_destroy();
+
 	// Split  dataset into mini-batches same as training
-	for (line_n = 1; line_n <= testing_n; line_n += batch_size) {
-		batch_size = min(BATCH_SIZE, testing_n - line_n + 1);
+	for (line_n = 1; line_n <= set_n; line_n += batch_size) {
+		batch_size = min(BATCH_SIZE, set_n - line_n + 1);
 
 		// Make batch
 		for (i = 0; i < batch_size; i++) {
@@ -90,24 +93,26 @@ int prediction_hits(FILE *csv, int testing_n, hashtable *specs) {
 				return errno;
 			}
 
-
 			left_spec = strtok_r(line, ",", &saveptr);
 			right_spec = strtok_r(NULL, ",", &saveptr);
 			labelptr = strtok_r(NULL, ",\n", &saveptr);
 
 			spec1 = search_hashTable_spec(specs, left_spec, &pos);
 			spec2 = search_hashTable_spec(specs, right_spec, &pos);
-			label=atoi(labelptr);
-		//printf("%s,%s (%d) => %ld bsize\n", left_spec, right_spec, label,batch_size );
+			label = atoi(labelptr);
+
+			//printf("%s,%s (%d) => %ld bsize\n", left_spec, right_spec, label,batch_size );
+
 			batch_push(spec1, spec2, label);
 		}
-		
-		run_batch(test,testing_n);
+
+
+		run_batch(test);
 		batch_destroy();
-		
-		//DEBUG:
-		//printf("%s,%s (%s) => %d\n", left_spec, right_spec, label, prediction);
 	}
+
+	hits = get_hits();
+	printf("Prediction accuracy: %5.2f%% (%ld hits)\n", hits / (double) set_n * 100.0, hits);
 
 	return 0;
 }

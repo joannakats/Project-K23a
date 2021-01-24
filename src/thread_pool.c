@@ -18,7 +18,8 @@ static volatile sig_atomic_t worker_quit; // Used to notify threads it's time to
 // Temporary struct used by threads
 static struct line batch[BATCH_SIZE];
 static long batch_size;
-long total_hits;
+
+static long total_hits;
 static struct {
 	pthread_mutex_t mutex;
 	pthread_cond_t thread_done;
@@ -29,6 +30,14 @@ void *worker_thread(void *arg);
 
 long min(long num1, long num2) {
 	return (num1 > num2 ) ? num2 : num1;
+}
+
+void reset_hits() {
+	total_hits = 0;
+}
+
+long get_hits() {
+	return total_hits;
 }
 
 // need an initialize and delete for job scheduler
@@ -82,7 +91,7 @@ void wait_for_batch() {
 	pthread_mutex_unlock(&notify.mutex);
 }
 
-int run_batch(enum job_type type,int testing_n) {
+int run_batch(enum job_type type) {
 	long i, size;
 	const long lines_per_thread = batch_size / jobscheduler.execution_threads;
 	Job job = {0};
@@ -106,11 +115,10 @@ int run_batch(enum job_type type,int testing_n) {
 
 	wait_for_batch();
 
-	/* Threads are done processing. Update weights */
-	if(job.type==train)
+	/* Threads are done processing. Update weights, if training */
+	if (job.type == train)
 		loregression_update_weights(model, batch, batch_size);
-	else
-		printf("Prediction accuracy: %5.2f%% (%ld hits)\n",total_hits / (double) testing_n * 100.0, total_hits);
+
 	return 0;
 }
 
@@ -126,7 +134,10 @@ void batch_destroy() {
 	long i;
 
 	for (i = 0; i < batch_size; i++) {
-		free(batch[i].x);
+		if (batch[i].x) {
+			free(batch[i].x);
+			batch[i].x = NULL;
+		}
 	}
 
 	batch_size = 0;
@@ -155,7 +166,8 @@ void jobsch_destroy() {
 
 void *worker_thread(void *arg) {
 	Job job;
-	int thread_hits=0;
+	int thread_hits = 0;
+
 	// Unused warning
 	(void) arg;
 
@@ -177,23 +189,21 @@ void *worker_thread(void *arg) {
 
 		pthread_mutex_unlock(&jobscheduler.mutex);
 
-		/* Loss computation */
 		//DEBUG:
-		//printf("Got job type %d: [%ld, %ld]\n", job.type, job.start, job.end);
-		if(job.type==train)
+		//printf("Got job type %d: [%ld, %ld]\n", job.type, job.start, job.end)
+
+		if (job.type == train) /* Training: Distributed loss computation */
 			loregression_loss(model,batch, job.start, job.end);
-		else{
-			loregression_pbatch(model,batch,job.start,job.end);
-			for(long i=job.start;i<job.end;i++){
-				if(batch[i].label==batch[i].loss)
-					thread_hits++;
-			}
-			
-		}
+		else /* Count hits */
+			thread_hits = loregression_pbatch(model,batch,job.start,job.end);
+
 		/* Done. Notify master thread */
 		pthread_mutex_lock(&notify.mutex);
-		total_hits+=thread_hits;
+
 		notify.counter++;
+
+		if (job.type == test)
+			total_hits += thread_hits;
 
 		pthread_cond_signal(&notify.thread_done);
 		pthread_mutex_unlock(&notify.mutex);
