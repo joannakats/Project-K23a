@@ -18,7 +18,7 @@ static volatile sig_atomic_t worker_quit; // Used to notify threads it's time to
 // Temporary struct used by threads
 static struct line batch[BATCH_SIZE];
 static long batch_size;
-
+long total_hits;
 static struct {
 	pthread_mutex_t mutex;
 	pthread_cond_t thread_done;
