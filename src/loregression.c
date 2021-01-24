@@ -102,7 +102,6 @@ int loregression_predict(logistic_regression *loregression,node *spec_left,node 
 	///////////////////////////////////////////////////////////////////////////////////
 }
 
-<<<<<<< HEAD
 
 double loregression_possibility(logistic_regression *loregression,node *spec_left,node *spec_right) {
 	int size=loregression->size;
@@ -163,7 +162,8 @@ void loregression_update_weights_of_pair(logistic_regression *model, node *spec1
 	}
 
 	free(x);
-=======
+}
+
 long loregression_pbatch(logistic_regression *loregression,struct line* batch,long a,long b){
 	int size=loregression->size;
 	long i, j;
@@ -191,5 +191,4 @@ long loregression_pbatch(logistic_regression *loregression,struct line* batch,lo
 
 	free(x);
 	return hits;
->>>>>>> 91d42321479d1e86884e9b1145bec5b8448bc6f3
 }
