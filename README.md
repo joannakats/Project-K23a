@@ -24,3 +24,4 @@ To run the testing executables, (found in tests/), run `make check`.
 * The program outputs to stdout by default, which is also suggested in the aforementioned Piazza discussion. Use `-o somefile.csv` or redirection, to point the data elsewhere.
 * Stopword list: [english.txt](https://github.com/Alir3z4/stop-words/blob/master/english.txt) from [Alir3z4/stop-words](https://github.com/Alir3z4/stop-words).
 * Using the log10() function, because the numeric results in the exercise explanation point to it instead of log9) or log2().
+* It is assumed that the sets (training, testing e.t.c.) are at least as big at the BATCH_SIZE.
