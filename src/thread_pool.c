@@ -82,7 +82,7 @@ void wait_for_batch() {
 	pthread_mutex_unlock(&notify.mutex);
 }
 
-int run_batch(enum job_type type) {
+int run_batch(enum job_type type,int testing_n) {
 	long i, size;
 	const long lines_per_thread = batch_size / jobscheduler.execution_threads;
 	Job job = {0};
@@ -107,7 +107,10 @@ int run_batch(enum job_type type) {
 	wait_for_batch();
 
 	/* Threads are done processing. Update weights */
-	loregression_update_weights(model, batch, batch_size);
+	if(job.type==train)
+		loregression_update_weights(model, batch, batch_size);
+	else
+		printf("Prediction accuracy: %5.2f%% (%ld hits)\n",total_hits / (double) testing_n * 100.0, total_hits);
 	return 0;
 }
 
@@ -177,12 +180,19 @@ void *worker_thread(void *arg) {
 		/* Loss computation */
 		//DEBUG:
 		//printf("Got job type %d: [%ld, %ld]\n", job.type, job.start, job.end);
-
-		loregression_loss(model, batch, job.start, job.end);
-
+		if(job.type==train)
+			loregression_loss(model,batch, job.start, job.end);
+		else{
+			loregression_pbatch(model,batch,job.start,job.end);
+			for(long i=job.start;i<job.end;i++){
+				if(batch[i].label==batch[i].loss)
+					thread_hits++;
+			}
+			
+		}
 		/* Done. Notify master thread */
 		pthread_mutex_lock(&notify.mutex);
-
+		total_hits+=thread_hits;
 		notify.counter++;
 
 		pthread_cond_signal(&notify.thread_done);

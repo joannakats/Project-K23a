@@ -101,3 +101,23 @@ int loregression_predict(logistic_regression *loregression,node *spec_left,node 
 	// //return (sigmoid(pred) >= 0.1 ? 1 : 0);	//alternative threshold
 	///////////////////////////////////////////////////////////////////////////////////
 }
+
+void loregression_pbatch(logistic_regression *loregression,struct line* batch,long a,long b){
+	int size=loregression->size;
+	long i;
+	double pred;
+	double *x=malloc(size* sizeof(double));
+	for(i=a;i<=b;i++){
+		compute_x(x,size,batch[i].spec[0],batch[i].spec[1]);
+		//compute prediction
+		pred=loregression->b;
+		for(int j=0;i<size;j++){
+			pred+=loregression->w[j]*x[j];
+		}
+		printf("batch problem hit\n");
+		//in the position of loss is the prediction
+		batch[i].loss=sigmoid(pred)>=0.5 ? 1 : 0; 
+	}
+	free(x);
+	
+}

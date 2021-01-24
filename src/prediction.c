@@ -64,7 +64,7 @@ int prediction_training(FILE *csv, int training_n, hashtable *specs) {
 		}
 
 		/* Calculate this batch (will be done in parallel) */
-		run_batch(train);
+		run_batch(train,training_n);
 
 		batch_destroy();
 	}
@@ -72,40 +72,42 @@ int prediction_training(FILE *csv, int training_n, hashtable *specs) {
 	return 0;
 }
 
-int prediction_hits(FILE *csv, int set_n, hashtable *specs) {
+int prediction_hits(FILE *csv, int testing_n, hashtable *specs) {
 	char line[512];
-	long line_n, hits = 0;
-	char *left_spec, *right_spec, *label, *saveptr;
+	long line_n,batch_size=0,i;
+	char *left_spec, *right_spec, *labelptr, *saveptr;
 
 	node *spec1, *spec2;
-	int pos;
+	int pos,label;
+	// Split  dataset into mini-batches same as training
+	for (line_n = 1; line_n <= testing_n; line_n += batch_size) {
+		batch_size = min(BATCH_SIZE, testing_n - line_n + 1);
 
-	int prediction;
+		// Make batch
+		for (i = 0; i < batch_size; i++) {
+		 	if (!fgets(line, sizeof(line), csv)) {
+				perror("Reading Dataset W for accuracy");
+				return errno;
+			}
 
-	for (line_n = 1; line_n <= set_n; line_n++) {
-		if (!fgets(line, sizeof(line), csv)) {
-			perror("Reading Dataset W for accuracy");
-			return errno;
+
+			left_spec = strtok_r(line, ",", &saveptr);
+			right_spec = strtok_r(NULL, ",", &saveptr);
+			labelptr = strtok_r(NULL, ",\n", &saveptr);
+
+			spec1 = search_hashTable_spec(specs, left_spec, &pos);
+			spec2 = search_hashTable_spec(specs, right_spec, &pos);
+			label=atoi(labelptr);
+		//printf("%s,%s (%d) => %ld bsize\n", left_spec, right_spec, label,batch_size );
+			batch_push(spec1, spec2, label);
 		}
-
-		left_spec = strtok_r(line, ",", &saveptr);
-		right_spec = strtok_r(NULL, ",", &saveptr);
-		label = strtok_r(NULL, ",\n", &saveptr);
-
-		spec1 = search_hashTable_spec(specs, left_spec, &pos);
-		spec2 = search_hashTable_spec(specs, right_spec, &pos);
-
-		prediction = loregression_predict(model, spec1, spec2);
-
+		
+		run_batch(test,testing_n);
+		batch_destroy();
+		
 		//DEBUG:
 		//printf("%s,%s (%s) => %d\n", left_spec, right_spec, label, prediction);
-
-		if (prediction == atoi(label))
-			hits++;
 	}
-
-	printf("Prediction accuracy: %5.2f%% (%ld hits)\n",
-		hits / (double) set_n * 100.0, hits);
 
 	return 0;
 }

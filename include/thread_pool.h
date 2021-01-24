@@ -28,6 +28,6 @@ void batch_init();
 void batch_push(node *spec1, node *spec2, int label);
 void batch_destroy();
 
-int run_batch(enum job_type type);
+int run_batch(enum job_type type,int dataset);
 
 #endif /* THREAD_POOL_H */
