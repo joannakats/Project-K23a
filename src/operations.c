@@ -156,9 +156,9 @@ static int partition_dataset_w(hashtable *hash_table, bow *vocabulary) {
 	fputs("Validation set... ", stderr);
 	validation(expanded, validation_n, hash_table, vocabulary);
 
-	// /* 3: Test set (We're not going for epochs right now) */
-	// fputs("Testing set... ", stderr);
-	// prediction_hits(expanded, test_n, hash_table);
+	/* 3: Test set */
+	fputs("Testing set... ", stderr);
+	prediction_hits(expanded, test_n, hash_table);
 
 	prediction_destroy();
 

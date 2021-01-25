@@ -24,13 +24,10 @@ long min(long num1, long num2);
 void jobsch_init(logistic_regression *_model, int threadNumber);
 void jobsch_destroy();
 
-void batch_init();
 void batch_push(node *spec1, node *spec2, int label);
-void batch_destroy();
-
 int run_batch(enum job_type type);
 
-// Used for testing set
+// Used for testing sets
 void reset_hits();
 long get_hits();
 

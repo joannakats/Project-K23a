@@ -51,7 +51,6 @@ void loregression_loss(logistic_regression *loregression, struct line *batch, lo
 
 	/* Handle computation for part of batch, set by job */
 	for (i = a; i <= b; i++) {
-		batch[i].x = malloc(size * sizeof(double));
 		compute_x(batch[i].x, size, batch[i].spec[0], batch[i].spec[1]);
 
 		/* Compute f(x) */

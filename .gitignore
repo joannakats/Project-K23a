@@ -24,3 +24,4 @@ vgcore.*
 # Output files
 *.csv
 tests/output
+temporary_file

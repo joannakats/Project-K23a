@@ -26,8 +26,8 @@ int prediction_init(bow *vocabulary) {
 }
 
 void prediction_destroy() {
-	loregression_delete(model);
 	jobsch_destroy();
+	loregression_delete(model);
 }
 
 int prediction_training(FILE *csv, int training_n, hashtable *specs) {
@@ -37,8 +37,6 @@ int prediction_training(FILE *csv, int training_n, hashtable *specs) {
 
 	node *spec[2];
 	int pos, label;
-
-	batch_destroy();
 
 	// Split training dataset into mini-batches, run training
 	for (line_n = 1; line_n <= training_n; line_n += batch_size) {
@@ -62,9 +60,8 @@ int prediction_training(FILE *csv, int training_n, hashtable *specs) {
 			batch_push(spec[0], spec[1], label);
 		}
 
-		/* Calculate this batch (will be done in parallel) */
+		/* Train with this batch (will be done in parallel) */
 		run_batch(train);
-		batch_destroy();
 	}
 
 	return 0;
@@ -79,8 +76,6 @@ int prediction_hits(FILE *csv, int set_n, hashtable *specs) {
 	int pos,label;
 
 	long hits;
-
-	batch_destroy();
 
 	// Split  dataset into mini-batches same as training
 	for (line_n = 1; line_n <= set_n; line_n += batch_size) {
@@ -106,9 +101,8 @@ int prediction_hits(FILE *csv, int set_n, hashtable *specs) {
 			batch_push(spec1, spec2, label);
 		}
 
-
+		/* Count hits with this batch (will be done in parallel) */
 		run_batch(test);
-		batch_destroy();
 	}
 
 	hits = get_hits();

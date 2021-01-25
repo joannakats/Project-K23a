@@ -58,12 +58,18 @@ void jobsch_init(logistic_regression *_model, int threadNumber) {
 	pthread_mutex_init(&(jobscheduler.mutex), NULL);
 	pthread_cond_init(&(jobscheduler.jobs_available), NULL);
 
-	/* Notify sync structure */
+	/* Batch structure */
+	batch_size = 0;
+	for (i = 0; i < BATCH_SIZE; ++i) {
+		//TODO error check?
+		batch[i].x = malloc(model->size * sizeof(batch[0].x[0]));
+	}
+
 	pthread_mutex_init(&(notify.mutex), NULL);
 	pthread_cond_init(&(notify.thread_done), NULL);
 
-	/* Create threads */
-	printf("Spawning %d threads...\n", jobscheduler.execution_threads);
+	/* Spawn threads */
+	printf("[Run sets (%d threads)]\n", jobscheduler.execution_threads);
 	for (i = 0; i < jobscheduler.execution_threads; ++i)
 		pthread_create(jobscheduler.tids + i, NULL, worker_thread, NULL);
 }
@@ -77,15 +83,12 @@ void submit_job(Job *job) {
 	pthread_mutex_unlock(&jobscheduler.mutex);
 }
 
-void wait_for_batch() {
+void wait_for_batch(int jobs) {
 	pthread_mutex_lock(&notify.mutex);
 
 	/* Wait to see that all jobs are finished.
-	   Counter will be equal to number of jobs, which happens to be the
-	   execution threads number.
-
-	   So it'll work even if one thread handles multiple jobs */
-	while (notify.counter < jobscheduler.execution_threads)
+	   Threads increment the counter after finishing job */
+	while (notify.counter < jobs)
 		pthread_cond_wait(&notify.thread_done, &notify.mutex);
 
 	pthread_mutex_unlock(&notify.mutex);
@@ -93,17 +96,19 @@ void wait_for_batch() {
 
 int run_batch(enum job_type type) {
 	long i, size;
+	/* At least <execution_threads> jobs */
 	const long lines_per_thread = batch_size / jobscheduler.execution_threads;
 	Job job = {0};
+	int jobs_n = 0;
 
-	// Ready sync struct
+	/* Initialize notify counter */
 	notify.counter = 0;
 
-	job.type = type;
 	// DEBUG:
-	//printf("Got batch type %d\n", job.type);
+	//printf("Got batch for job type %d\n", type);
 
 	/* Split batch between the threads */
+	job.type = type;
 	for (i = 0; i < batch_size; i += size) {
 		size = min(lines_per_thread, batch_size - i);
 
@@ -111,13 +116,17 @@ int run_batch(enum job_type type) {
 		job.end = i + size - 1;
 
 		submit_job(&job);
+		jobs_n++;
 	}
 
-	wait_for_batch();
+	wait_for_batch(jobs_n);
 
 	/* Threads are done processing. Update weights, if training */
-	if (job.type == train)
+	if (type == train)
 		loregression_update_weights(model, batch, batch_size);
+
+	/* Reset batch */
+	batch_size = 0;
 
 	return 0;
 }
@@ -130,25 +139,8 @@ void batch_push(node *spec1, node *spec2, int label) {
 	batch_size++;
 }
 
-void batch_destroy() {
-	long i;
-
-	for (i = 0; i < batch_size; i++) {
-		if (batch[i].x) {
-			free(batch[i].x);
-			batch[i].x = NULL;
-		}
-	}
-
-	batch_size = 0;
-}
-
 void jobsch_destroy() {
 	int i;
-
-	/* Notify sync structure */
-	pthread_mutex_destroy(&notify.mutex);
-	pthread_cond_destroy(&notify.thread_done);
 
 	/* Job Scheduler */
 	worker_quit = 1;
@@ -158,10 +150,19 @@ void jobsch_destroy() {
 	for (i = 0; i < jobscheduler.execution_threads; i++)
 		pthread_join(jobscheduler.tids[i], NULL);
 
+	free(jobscheduler.tids);
+
 	pthread_mutex_destroy(&jobscheduler.mutex);
 	pthread_cond_destroy(&jobscheduler.jobs_available);
 
-	free(jobscheduler.tids);
+	/* Batch structures */
+	pthread_mutex_destroy(&notify.mutex);
+	pthread_cond_destroy(&notify.thread_done);
+
+	for (i = 0; i < BATCH_SIZE; i++)
+		free(batch[i].x);
+
+	batch_size = 0;
 }
 
 void *worker_thread(void *arg) {
@@ -190,10 +191,10 @@ void *worker_thread(void *arg) {
 		pthread_mutex_unlock(&jobscheduler.mutex);
 
 		//DEBUG:
-		//printf("Got job type %d: [%ld, %ld]\n", job.type, job.start, job.end)
+		//printf("Got job type %d: [%ld, %ld]\n", job.type, job.start, job.end);
 
 		if (job.type == train) /* Training: Distributed loss computation */
-			loregression_loss(model,batch, job.start, job.end);
+			loregression_loss(model, batch, job.start, job.end);
 		else /* Count hits */
 			thread_hits = loregression_pbatch(model,batch,job.start,job.end);
 
