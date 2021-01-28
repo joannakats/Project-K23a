@@ -223,8 +223,8 @@ int begin_operations(int entries, char *dataset_x, char *dataset_w, char *output
 				fputs("[Partitioning Derived Dataset W']\n", stderr);
 				if (!(ret = partition_dataset_w(&hash_table, vocabulary))) {
 
-					// fputs("[Writing output csv (cliques)]\n", stderr);
-					// ret = print_pairs_csv(&hash_table, output);
+					fputs("[Writing output csv (cliques)]\n", stderr);
+					ret = print_pairs_csv(&hash_table, output);
 				}
 			}
 		}
