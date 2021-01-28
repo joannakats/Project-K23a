@@ -25,3 +25,12 @@ To run the testing executables, (found in tests/), run `make check`.
 * Stopword list: [english.txt](https://github.com/Alir3z4/stop-words/blob/master/english.txt) from [Alir3z4/stop-words](https://github.com/Alir3z4/stop-words).
 * Using the log10() function, because the numeric results in the exercise explanation point to it instead of log9) or log2().
 * It is assumed that the sets (training, testing e.t.c.) are at least as big at the BATCH_SIZE.
+
+## Validation
+* At the beginnig of every round, validation() creates new structures of cliques for the sake of the algorithm and destroys them at the end of every round.
+* These cliques are created according to the predictions of the model.
+* The idea is: we insert relations of specs, if and only if, these relations don't cause any conflicts in these structures. In case they create conflicts we keep a record of: the specs that caused the conflicts, the type of the relation and the prediction of the model (aka possibility). These records are kept in a form of a list.
+* For every round, after we've inserted everything we wanted into structures we resolve the conflicts by traversing the list of conflicts. According to the type of the conflict we call its corresponding function.
+* The decision whether we will keep the relation that caused the conflict or not is made according to the possibilities and the number of relations, which should be less or equal to 5 (this number is chosen empirically considering the delay of the progam and the reduction of conflicts). 
+* Every time we change a relation we update the weights.
+* validation() continues resolving conflicts until the number of conflicts drops by 45%.
