@@ -3,7 +3,6 @@
 
 #include "vocabulary.h"
 
-/* TODO: if only stopwords, make this title more speicific */
 int preprocessing_init(char *stopwords_file);
 
 /* Put a whole spec in the Bag of Words (Part of creating the global vocabulary) */

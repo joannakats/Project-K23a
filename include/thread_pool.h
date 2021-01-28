@@ -10,7 +10,7 @@
 #include "queue.h"
 #include "spec_hashtable.h"
 
-#define BATCH_SIZE 1024 // TODO: mention speeds with 1024 or sth else, in Documentation
+#define BATCH_SIZE 1024
 
 typedef struct JobScheduler {
 	int execution_threads; //number of execution threads
