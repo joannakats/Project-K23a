@@ -22,6 +22,7 @@ int loregression_predict(logistic_regression *loregression,node *spec_left,node 
 double loregression_possibility(logistic_regression *loregression,node *spec_left,node *spec_right);
 void update_weights_of_clique(logistic_regression *model, clique *c);
 void loregression_update_weights_of_pair(logistic_regression *model, node *spec1, node *spec2, double label);
+void loregression_predict_cliques(logistic_regression *model, node *spec1, node *spec2);
 
 /* Calculate hits for batch */
 long loregression_pbatch(logistic_regression *loregression,struct line* batch,long a,long b);

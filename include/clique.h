@@ -39,4 +39,5 @@ int find_positive_conflicts(node *spec1, node *spec2);
 int find_negative_conflicts(node *spec1, node *spec2);
 void remove_negCorrelation(clique *clique1, clique *clique2);
 void split_clique(node *spec1, node *spec2);
+void move_to_clique(clique *c1, cliqueNode *prev, cliqueNode *del, clique *c2);
 #endif

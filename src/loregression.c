@@ -137,6 +137,34 @@ void update_weights_of_clique(logistic_regression *model, clique *c) {
 }
 
 
+/* used after split_clique(.) of clique.c */
+/* moves some cliqueNodes of clique1 to clique2 according to predictions of the model */
+void loregression_predict_cliques(logistic_regression *model, node *spec1, node *spec2) {
+	clique *clique1 = spec1->clique;
+	clique *clique2 = spec2->clique;
+	cliqueNode *cn1 = clique1->head, *prev = NULL;
+
+	double poss1, poss2;
+
+	while (cn1 != NULL) {
+		if (cn1->spec != spec1) {
+			/* compute possibilities to see in which clique this cliqueNode */
+			poss1 =loregression_possibility(model, cn1->spec, spec1);
+			poss2 =loregression_possibility(model, cn1->spec, spec2);
+
+			/* if possibility of relation [spec2 - cn1->spec] is greater than possibility of
+				relation [spec1 - cn1->spec] then move this cliqueNode (cn1) to the clique2's list */
+			if (poss2 > poss1) {
+				move_to_clique(clique1, prev, cn1, clique2);
+			}
+		}
+
+		prev = cn1;
+		cn1 = cn1->next;
+	}
+}
+
+
 void loregression_update_weights_of_pair(logistic_regression *model, node *spec1, node *spec2, double label) {
 	int size = model->size;
 	double f = model->b;
@@ -184,8 +212,9 @@ long loregression_pbatch(logistic_regression *loregression,struct line* batch,lo
 		// printf("batch problem hit\n");
 		binary_prediction = (sigmoid(pred) >= 0.5 ? 1 : 0);
 
-		if (batch[i].label == binary_prediction)
+		if (batch[i].label == binary_prediction) {
 			hits++;
+		}
 	}
 
 	free(x);

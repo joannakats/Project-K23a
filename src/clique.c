@@ -338,7 +338,23 @@ void split_clique(node *spec1, node *spec2) {
 
 	/* create a clique for spec2 */
 	spec2->clique = clique_init(spec2);
+	spec2->hasListOfClique = true;
 
 	/* insert a negative correlation between spec1 and spec2 */
 	anti_clique_insert(spec1, spec2);
+}
+
+
+/* used for loregression_predict_cliques in loregression.c */
+void move_to_clique(clique *c1, cliqueNode *prev, cliqueNode *del, clique *c2) {
+	/* remove cliqueNode from one clique */
+	if (prev == NULL) {
+		c1->head = del->next;
+	} else {
+		prev->next = del->next;
+	}
+
+	/* move this cliqueNode to the other's clique list of cliqueNodes */
+	del->next = c2->head;
+	c2->head = del;
 }

@@ -58,7 +58,7 @@ void print_conflict_list(conflict_list *list) {
   conflict *c = list->head;
 
   while(c != NULL) {
-    printf("%s, %s, %d\n", c->spec1->id, c->spec2->id, c->type);
+    printf("%s, %s, %d, %.2f\n", c->spec1->id, c->spec2->id, c->type, c->prediction);
     c = c->next;
   }
 }
@@ -125,17 +125,8 @@ void resolve_positive_conflict(logistic_regression *model, conflict *conflict) {
   cliqueNode *c1 = spec1->clique->head;
   cliqueNode *c2;
 
-  /* -----predict all possible relations of these 2 cliques to compute average prediction -----*/
+  /* -----------predict all relations between these cliques-----------*/
   while (c1 != NULL) {
-    cliqueNode *tmp = c1->next;
-
-    while(tmp != NULL) {
-      cnt++;
-      average_of_cliques += loregression_possibility(model, c1->spec, tmp->spec);
-
-      tmp = tmp->next;
-    }
-
     c2 = spec2->clique->head;
     while(c2 != NULL) {
       cnt++;
@@ -147,28 +138,12 @@ void resolve_positive_conflict(logistic_regression *model, conflict *conflict) {
     c1 = c1->next;
   }
 
-  c2 = spec2->clique->head;
-  while(c2 != NULL) {
-    cliqueNode *tmp = c2->next;
-
-    while (tmp != NULL) {
-      cnt++;
-      average_of_cliques += loregression_possibility(model, c2->spec, tmp->spec);
-
-      tmp = tmp->next;
-    }
-
-    c2 = c2->next;
-  }
-
   /* get average */
   average_of_cliques /= cnt;
 
   /* decision */
-  double conflict_diff = 1 - conflict->prediction;
-
   /* check which converges more */
-  if (conflict_diff < average_of_cliques) {
+  if (conflict->prediction > (1 - average_of_cliques) && cnt <= 5) {
     /* update relations of two cliques */
     /* the two cliques will be merged */
     remove_negCorrelation(spec1->clique, spec2->clique);
@@ -202,6 +177,7 @@ void resolve_negative_conflict(logistic_regression *model, conflict *conflict) {
     cn2 = cn1->next;
 
     while(cn2 != NULL) {
+      cnt++;
       average += loregression_possibility(model, cn1->spec, cn2->spec);
 
       cn2 = cn2->next;
@@ -213,12 +189,12 @@ void resolve_negative_conflict(logistic_regression *model, conflict *conflict) {
   average /= cnt;
 
   /* decision */
-  double average_diff = 1 - average;
   /* check which converges more */
-  if (conflict->prediction < average_diff) {
+  if (((1 - conflict->prediction) > average) && cnt <= 5) {
     /* split clique and update weights */
     split_clique(conflict->spec1, conflict->spec2);
     loregression_update_weights_of_pair(model, conflict->spec1, conflict->spec2, 0.0);
+    // loregression_predict_cliques(model, conflict->spec1, conflict->spec2);   //seems to slow down the program when we use the large dataset
   } else {
     /* change the relation that caused the conflict and updates weights for that relation */
     loregression_update_weights_of_pair(model, conflict->spec1, conflict->spec2, 1.0);
@@ -243,8 +219,9 @@ void resolve_conflicts(logistic_regression *model, conflict_list *list) {
 
 void validation(FILE *csv, int set_n, hashtable *specs, bow *vocabulary) {
   char line[256], specid1[108], specid2[108];
-  int label, prediction, counter = 0, initial_numOfConflicts = 0, difference = 0;
+  int label, counter = 0, initial_numOfConflicts = 0;
   float condition;
+  double prediction;
   long line_n;
   node *spec1, *spec2;
   FILE *fp;
@@ -285,11 +262,11 @@ void validation(FILE *csv, int set_n, hashtable *specs, bow *vocabulary) {
       // printf("%s - %s \n", spec1->id, spec2->id); fflush(stdout);
 
       /* predict for  pair of specs */
-      prediction = loregression_predict(model, spec1, spec2);
+      prediction = loregression_possibility(model, spec1, spec2);
 
       /* if the relation that we are about to insert creates conflicts with the already existing relations
          then do not insert it into the stucts but keep the nodes in conflictList */
-      if (prediction == 1) {
+      if (prediction > 0.5) {
 
         /* if conflicts are found insert into conflictList */
         if (search_for_conflicts(spec1, spec2, true) == 1) {
@@ -311,14 +288,14 @@ void validation(FILE *csv, int set_n, hashtable *specs, bow *vocabulary) {
 
       }
     }
-
-/*    puts("");
-    print_conflict_list(conflictList); */
-    puts("");
+    printf("\nnumber of conflicts = %d\n", conflictList->counter);
+    // puts("");
+    // print_conflict_list(conflictList);
+    // puts("");
 
     if (initial_numOfConflicts == 0) {
       initial_numOfConflicts = conflictList->counter;
-      condition = 0.4 * initial_numOfConflicts;
+      condition = 0.55 * initial_numOfConflicts;
     }
 
     /* if conflict list is not empty resolve conflicts and backpropagate */
@@ -327,14 +304,14 @@ void validation(FILE *csv, int set_n, hashtable *specs, bow *vocabulary) {
       resolve_conflicts(model, conflictList);
     }
 
-    /* free memory allocated for this validation round */
-    difference = abs(counter - conflictList->counter);
     counter = conflictList->counter;
+
+    /* free memory allocated for this validation round */
     delete_hashtable(&hs);
     delete_list(conflictList);
-    printf("number of conflicts = %d\n", counter);
-  } while (counter > condition && difference > 5);  // continue resolving conflicts until the number of conflicts
-  // drops to 40% of the initial number of conflicts or if [|new conflicts - previous conflicts|] > 5
+
+  } while (counter > condition);  // continue resolving conflicts until the number of conflicts
+  // drops to 55% of the initial number of conflicts
 
   /* close temporary file of validation set and unlink it */
   fclose(fp);
