@@ -114,7 +114,8 @@ double loregression_possibility(logistic_regression *loregression,node *spec_lef
 	}
 
 	free(x);
-
+double poss = sigmoid(pred);
+printf("###%f\n", poss);
 	return sigmoid(pred);
 }
 
