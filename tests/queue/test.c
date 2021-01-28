@@ -34,7 +34,6 @@ void test_queue(void){
 	queue_pull(&queue);
 	TEST_CHECK(queue.qcount==0);
 	TEST_CHECK(queue.head==NULL);
-	TEST_CHECK(queue.tail==NULL);
 }
 
 TEST_LIST = {
