@@ -28,7 +28,7 @@ SRC_OBJ = $(patsubst %.c,%.o,$(wildcard src/*.c))
 TARGET = specs
 
 TEST_OBJ = $(patsubst %.c,%.o,$(wildcard tests/*/*.c))
-TEST_TARGETS = tests/test_hstable tests/test_json_insertion tests/test_spec tests/test_clique tests/test_vocabulary
+TEST_TARGETS = tests/test_hstable tests/test_json_insertion tests/test_spec tests/test_clique tests/test_vocabulary tests/test_queue
 
 TARGETS = $(TARGET) $(TEST_TARGETS)
 
@@ -47,6 +47,7 @@ tests/test_vocabulary: tests/vocabulary/test.o src/hashtable.o src/spec_hashtabl
 tests/test_hstable: tests/hashtable/test.o src/hashtable.o src/spec_hashtable.o src/spec.o src/clique.o src/json.o $(HDR)
 tests/test_spec: tests/spec/test.o src/hashtable.o src/spec.o src/clique.o src/json.o $(HDR)
 tests/test_clique: tests/clique/test.o src/spec.o src/clique.o src/hashtable.o src/json.o src/spec_hashtable.o $(HDR)
+tests/test_queue: tests/queue/test.o src/queue.o $(HDR)
 
 ## Object files
 %.o: %.c $(HDR)
