@@ -203,7 +203,7 @@ void *worker_thread(void *arg) {
 
 		notify.counter++;
 
-		if (job.type == test)
+		if (job.type != train)
 			total_hits += thread_hits;
 
 		pthread_cond_signal(&notify.thread_done);
