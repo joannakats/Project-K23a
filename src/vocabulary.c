@@ -205,7 +205,7 @@ void bow_delete(bow *vocabulary) {
 	free(vocabulary->texts);
 	free(vocabulary->idf_factors);
 
-	/* TODO: Delete hashtable function? */
+	/* Delete hashtable */
 	for (i = 0; i < vocabulary->ht.tableSize; ++i) {
 		current = vocabulary->ht.list[i];
 

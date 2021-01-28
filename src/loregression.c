@@ -59,7 +59,6 @@ void loregression_loss(logistic_regression *loregression, struct line *batch, lo
 			f += loregression->w[j] * batch[i].x[j];
 
 		/* No other thread writing on this specific position */
-		//TODO: IS this what the thread writes?
 		batch[i].loss = (sigmoid(f) - (double) batch[i].label);
 	}
 }
@@ -77,7 +76,6 @@ void loregression_update_weights(logistic_regression *loregression, struct line 
 		for (i = 0; i < batch_size; i++)
 			x += batch[i].x[j];
 
-		//TODO: IS this what the master thread does? Maybe some average instead or sth?
 		loregression->w[j] -= LR * loss * x;
 	}
 }

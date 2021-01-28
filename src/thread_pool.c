@@ -60,10 +60,8 @@ void jobsch_init(logistic_regression *_model, int threadNumber) {
 
 	/* Batch structure */
 	batch_size = 0;
-	for (i = 0; i < BATCH_SIZE; ++i) {
-		//TODO error check?
+	for (i = 0; i < BATCH_SIZE; ++i)
 		batch[i].x = malloc(model->size * sizeof(batch[0].x[0]));
-	}
 
 	pthread_mutex_init(&(notify.mutex), NULL);
 	pthread_cond_init(&(notify.thread_done), NULL);
